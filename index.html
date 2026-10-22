@@ -202,10 +202,27 @@
   /* mapa */
   .map{display:grid;gap:20px}
   .map-figure{margin:0}
-  .map-figure a{position:relative;display:block;border-radius:var(--radius);overflow:hidden;background:var(--gray);box-shadow:0 24px 50px -28px rgba(0,0,0,.45)}
-  .map-figure img{width:100%;height:auto;aspect-ratio:1024/765;transition:transform .4s var(--ease)}
-  .map-figure a:hover img{transform:scale(1.03)}
-  .map-figure .zoom{position:absolute;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:8px;background:var(--black);color:var(--white);font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-radius:999px}
+  /* mapa 3D: el card rota siguiendo el cursor (--rx/--ry los pone el JS) */
+  .map-stage{perspective:1100px}
+  .map-card{--rx:10deg;--ry:-6deg;--gx:50%;--gy:30%;position:relative;transform-style:preserve-3d;
+    transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .6s var(--ease);will-change:transform}
+  .map-card.tracking{transition:transform .08s linear}
+  .map-card::before{content:"";position:absolute;inset:6% 4% -4%;border-radius:var(--radius);background:rgba(16,16,16,.45);filter:blur(28px);transform:translateZ(-60px);pointer-events:none}
+  .map-link{position:relative;display:block;border-radius:var(--radius);overflow:hidden;background:var(--gray);outline-offset:6px}
+  .map-link img{width:100%;height:auto;aspect-ratio:1024/765}
+  .map-glare{position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;transform:translateZ(1px);
+    background:radial-gradient(circle at var(--gx) var(--gy),rgba(255,255,255,.38),rgba(255,255,255,0) 45%);mix-blend-mode:soft-light;opacity:.9}
+  .map-pin{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-100%) translateZ(55px);display:flex;flex-direction:column;align-items:center;pointer-events:none;transition:transform .3s var(--ease)}
+  .map-pin b{width:34px;height:34px;border-radius:50%;background:var(--red);color:var(--white);border:3px solid var(--white);display:grid;place-items:center;font-family:var(--f-display);font-weight:400;font-size:17px;box-shadow:0 8px 16px -4px rgba(0,0,0,.5)}
+  .map-pin b::after{content:"";position:absolute;top:31px;left:50%;width:3px;height:14px;margin-left:-1.5px;background:var(--white)}
+  .map-pin em{position:absolute;bottom:calc(100% + 6px);font-style:normal;font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;background:var(--black);color:var(--white);padding:5px 9px;border-radius:99px;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s}
+  .map-pin.active{transform:translate(-50%,-100%) translateZ(90px) scale(1.15)}
+  .map-pin.active em{opacity:1;transform:none}
+  .map-pin.active b{background:var(--black)}
+  .route li[data-pin]{cursor:default;transition:transform .2s var(--ease)}
+  .route li[data-pin].active{transform:translateX(6px)}
+  .route li[data-pin].active .pin{background:var(--red);color:var(--white)}
+  .map-figure .zoom{transform:translateZ(35px);pointer-events:none;position:absolute;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:8px;background:var(--black);color:var(--white);font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-radius:999px}
   .map-figure .zoom svg{width:14px;height:14px}
   .map-figure figcaption{margin-top:10px;font-size:14px;color:var(--gray-mid)}
   .route{list-style:none;margin:0;padding:0;position:relative}
@@ -572,24 +589,34 @@
 <section class="sec" id="mapa" aria-labelledby="t-mapa">
   <div class="wrap map">
     <figure class="map-figure reveal">
-      <a href="img/plano-circuito.jpg" target="_blank" rel="noopener" aria-label="Ver el plano del circuito en tamaño completo">
-        <picture>
-          <source srcset="img/plano-circuito.webp" type="image/webp">
-          <img src="img/plano-circuito.jpg" width="1024" height="765" loading="lazy" decoding="async" alt="Plano ilustrado del campus USFQ con el recorrido marcado en rojo: estaciones de fútbol, puntería y vóley junto a las canchas, y la zona de resistencia y espacio de auspiciantes en la plaza.">
-        </picture>
-        <span class="zoom" aria-hidden="true">Ampliar <svg><use href="#i-arrow"/></svg></span>
-      </a>
-      <figcaption>Toca el plano para verlo en tamaño completo.</figcaption>
+      <div class="map-stage">
+        <div class="map-card" id="map-card">
+          <a class="map-link" href="img/plano-circuito.jpg" target="_blank" rel="noopener" aria-label="Ver el plano del circuito en tamaño completo">
+            <picture>
+              <source srcset="img/plano-circuito.webp" type="image/webp">
+              <img src="img/plano-circuito.jpg" width="1024" height="765" loading="lazy" decoding="async" alt="Plano ilustrado del campus USFQ con el recorrido marcado en rojo: estaciones de fútbol, puntería y vóley junto a las canchas, y la zona de resistencia y espacio de auspiciantes en la plaza.">
+            </picture>
+          </a>
+          <span class="map-glare" aria-hidden="true"></span>
+          <!-- Marcadores flotantes: posición en % sobre la imagen -->
+          <span class="map-pin" data-pin="1" style="--x:88%;--y:40%" aria-hidden="true"><b>1</b><em>Fútbol</em></span>
+          <span class="map-pin" data-pin="2" style="--x:77%;--y:51%" aria-hidden="true"><b>2</b><em>Puntería</em></span>
+          <span class="map-pin" data-pin="3" style="--x:66%;--y:43%" aria-hidden="true"><b>3</b><em>Vóley</em></span>
+          <span class="map-pin" data-pin="4" style="--x:38%;--y:50%" aria-hidden="true"><b>4</b><em>Resistencia</em></span>
+          <span class="zoom" aria-hidden="true">Ampliar <svg><use href="#i-arrow"/></svg></span>
+        </div>
+      </div>
+      <figcaption>Mueve el cursor sobre el plano. Haz clic para verlo en tamaño completo.</figcaption>
     </figure>
     <div class="reveal">
       <p class="eyebrow red">04 · Mapa del circuito</p>
       <h2 class="display h2" id="t-mapa" style="margin-bottom:28px">El recorrido</h2>
       <ol class="route">
         <li class="start"><span class="pin" aria-hidden="true"><svg><use href="#i-flag"/></svg></span><div><b>Salida</b><span>Por olas, a la hora de tu pasaporte</span></div></li>
-        <li><span class="pin" aria-hidden="true">1</span><div><b>Estación de fútbol</b><span>Canchas de fútbol</span></div></li>
-        <li><span class="pin" aria-hidden="true">2</span><div><b>Estación de puntería</b><span>Canchas de tenis</span></div></li>
-        <li><span class="pin" aria-hidden="true">3</span><div><b>Estación de vóley</b><span>Canchas de arena</span></div></li>
-        <li><span class="pin" aria-hidden="true">4</span><div><b>Estación de resistencia</b><span>Cuadrángulos</span></div></li>
+        <li data-pin="1"><span class="pin" aria-hidden="true">1</span><div><b>Estación de fútbol</b><span>Canchas de fútbol</span></div></li>
+        <li data-pin="2"><span class="pin" aria-hidden="true">2</span><div><b>Estación de puntería</b><span>Canchas de tenis</span></div></li>
+        <li data-pin="3"><span class="pin" aria-hidden="true">3</span><div><b>Estación de vóley</b><span>Canchas de arena</span></div></li>
+        <li data-pin="4"><span class="pin" aria-hidden="true">4</span><div><b>Estación de resistencia</b><span>Cuadrángulos</span></div></li>
         <li class="finish"><span class="pin" aria-hidden="true"><svg><use href="#i-finish"/></svg></span><div><b>Meta</b><span>Gradas del Hall Principal</span></div></li>
       </ol>
     </div>
@@ -799,6 +826,49 @@
     el.m.textContent=pad(Math.floor(s%3600/60)); el.s.textContent=pad(s%60);
   }
   tick(); setInterval(tick,1000);
+
+  // mapa 3D: inclina el plano siguiendo el cursor y resalta estaciones
+  var card=document.getElementById('map-card');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(card){
+    // solo se mueve cuando el usuario mueve el cursor; con "reducir movimiento" se inclina menos
+    var MAX=reduce?6:14, raf=0;
+    card.addEventListener('pointermove',function(e){
+      if(e.pointerType==='touch') return;
+      var r=card.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(function(){
+        card.classList.add('tracking');
+        card.style.setProperty('--ry',((px-.5)*2*MAX).toFixed(2)+'deg');
+        card.style.setProperty('--rx',((.5-py)*2*MAX*.8).toFixed(2)+'deg');
+        card.style.setProperty('--gx',(px*100).toFixed(1)+'%');
+        card.style.setProperty('--gy',(py*100).toFixed(1)+'%');
+      });
+    });
+    card.addEventListener('pointerleave',function(){
+      cancelAnimationFrame(raf);
+      card.classList.remove('tracking');
+      ['--rx','--ry','--gx','--gy'].forEach(function(p){card.style.removeProperty(p)});
+    });
+  }
+  // pasar el cursor por la lista del recorrido (o por un marcador) resalta la estación en el mapa
+  var pins=document.querySelectorAll('.map-pin'), stops=document.querySelectorAll('.route li[data-pin]');
+  function highlight(id){
+    pins.forEach(function(p){p.classList.toggle('active',p.dataset.pin===id)});
+    stops.forEach(function(s){s.classList.toggle('active',s.dataset.pin===id)});
+  }
+  stops.forEach(function(s){
+    s.addEventListener('pointerenter',function(){highlight(s.dataset.pin)});
+    s.addEventListener('pointerleave',function(){highlight(null)});
+  });
+  if(card){
+    card.addEventListener('pointermove',function(e){
+      var hit=null;
+      pins.forEach(function(p){var b=p.querySelector('b').getBoundingClientRect(); if(Math.abs(e.clientX-(b.left+b.width/2))<40 && Math.abs(e.clientY-(b.top+b.height/2))<40) hit=p.dataset.pin;});
+      highlight(hit);
+    });
+    card.addEventListener('pointerleave',function(){highlight(null)});
+  }
 
   // aparición al hacer scroll
   var items=document.querySelectorAll('.reveal');
