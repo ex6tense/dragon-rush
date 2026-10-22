@@ -201,8 +201,13 @@
 
   /* mapa */
   .map{display:grid;gap:20px}
-  .map-slot{aspect-ratio:4/3;color:var(--black);background:repeating-linear-gradient(45deg,transparent 0 14px,rgba(16,16,16,.04) 14px 28px)}
-  .map-slot .slot{width:100%;height:100%;font-size:14px}
+  .map-figure{margin:0}
+  .map-figure a{position:relative;display:block;border-radius:var(--radius);overflow:hidden;background:var(--gray);box-shadow:0 24px 50px -28px rgba(0,0,0,.45)}
+  .map-figure img{width:100%;height:auto;aspect-ratio:1024/765;transition:transform .4s var(--ease)}
+  .map-figure a:hover img{transform:scale(1.03)}
+  .map-figure .zoom{position:absolute;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:8px;background:var(--black);color:var(--white);font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-radius:999px}
+  .map-figure .zoom svg{width:14px;height:14px}
+  .map-figure figcaption{margin-top:10px;font-size:14px;color:var(--gray-mid)}
   .route{list-style:none;margin:0;padding:0;position:relative}
   .route::before{content:"";position:absolute;left:21px;top:22px;bottom:22px;border-left:3px dashed var(--red)}
   .route li{position:relative;display:flex;align-items:center;gap:16px;padding:10px 0}
@@ -566,8 +571,16 @@
 <!-- ================= 5. MAPA ================= -->
 <section class="sec" id="mapa" aria-labelledby="t-mapa">
   <div class="wrap map">
-    <!-- PLANO DEL CIRCUITO: reemplazar este recuadro por <img src="img/plano.png" alt="Plano del campus USFQ con las cuatro estaciones y la meta"> -->
-    <div class="map-slot reveal"><div class="slot">Plano del circuito<small>Aquí va la imagen del plano del campus con las estaciones marcadas</small></div></div>
+    <figure class="map-figure reveal">
+      <a href="img/plano-circuito.jpg" target="_blank" rel="noopener" aria-label="Ver el plano del circuito en tamaño completo">
+        <picture>
+          <source srcset="img/plano-circuito.webp" type="image/webp">
+          <img src="img/plano-circuito.jpg" width="1024" height="765" loading="lazy" decoding="async" alt="Plano ilustrado del campus USFQ con el recorrido marcado en rojo: estaciones de fútbol, puntería y vóley junto a las canchas, y la zona de resistencia y espacio de auspiciantes en la plaza.">
+        </picture>
+        <span class="zoom" aria-hidden="true">Ampliar <svg><use href="#i-arrow"/></svg></span>
+      </a>
+      <figcaption>Toca el plano para verlo en tamaño completo.</figcaption>
+    </figure>
     <div class="reveal">
       <p class="eyebrow red">04 · Mapa del circuito</p>
       <h2 class="display h2" id="t-mapa" style="margin-bottom:28px">El recorrido</h2>
