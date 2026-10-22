@@ -201,30 +201,55 @@
 
   /* mapa */
   .map{display:grid;gap:20px}
-  .map-figure{margin:0}
-  /* mapa 3D: el card rota siguiendo el cursor (--rx/--ry los pone el JS) */
-  .map-stage{perspective:1100px}
-  .map-card{--rx:10deg;--ry:-6deg;--gx:50%;--gy:30%;position:relative;transform-style:preserve-3d;
-    transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .6s var(--ease);will-change:transform}
-  .map-card.tracking{transition:transform .08s linear}
-  .map-card::before{content:"";position:absolute;inset:6% 4% -4%;border-radius:var(--radius);background:rgba(16,16,16,.45);filter:blur(28px);transform:translateZ(-60px);pointer-events:none}
-  .map-link{position:relative;display:block;border-radius:var(--radius);overflow:hidden;background:var(--gray);outline-offset:6px}
-  .map-link img{width:100%;height:auto;aspect-ratio:1024/765}
-  .map-glare{position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;transform:translateZ(1px);
-    background:radial-gradient(circle at var(--gx) var(--gy),rgba(255,255,255,.38),rgba(255,255,255,0) 45%);mix-blend-mode:soft-light;opacity:.9}
-  .map-pin{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-100%) translateZ(55px);display:flex;flex-direction:column;align-items:center;pointer-events:none;transition:transform .3s var(--ease)}
-  .map-pin b{width:34px;height:34px;border-radius:50%;background:var(--red);color:var(--white);border:3px solid var(--white);display:grid;place-items:center;font-family:var(--f-display);font-weight:400;font-size:17px;box-shadow:0 8px 16px -4px rgba(0,0,0,.5)}
-  .map-pin b::after{content:"";position:absolute;top:31px;left:50%;width:3px;height:14px;margin-left:-1.5px;background:var(--white)}
-  .map-pin em{position:absolute;bottom:calc(100% + 6px);font-style:normal;font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;background:var(--black);color:var(--white);padding:5px 9px;border-radius:99px;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s}
-  .map-pin.active{transform:translate(-50%,-100%) translateZ(90px) scale(1.15)}
-  .map-pin.active em{opacity:1;transform:none}
-  .map-pin.active b{background:var(--black)}
-  .route li[data-pin]{cursor:default;transition:transform .2s var(--ease)}
-  .route li[data-pin].active{transform:translateX(6px)}
-  .route li[data-pin].active .pin{background:var(--red);color:var(--white)}
-  .map-figure .zoom{transform:translateZ(35px);pointer-events:none;position:absolute;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:8px;background:var(--black);color:var(--white);font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-radius:999px}
-  .map-figure .zoom svg{width:14px;height:14px}
-  .map-figure figcaption{margin-top:10px;font-size:14px;color:var(--gray-mid)}
+  /* mapa 3D (Three.js, ver js/mapa3d.js) */
+  .m3d{margin:0}
+  .m3d-stage{position:relative;aspect-ratio:4/3.3;border-radius:var(--radius);overflow:hidden;background:var(--gray);isolation:isolate;box-shadow:0 24px 50px -28px rgba(0,0,0,.45)}
+  .m3d-canvas{position:absolute;inset:0}
+  .m3d-canvas canvas{display:block;width:100%!important;height:100%!important;cursor:grab;touch-action:pan-y}
+  .m3d-active .m3d-canvas canvas{touch-action:none}
+  .m3d-canvas canvas:active{cursor:grabbing}
+  .m3d-labels{position:absolute;inset:0;pointer-events:none;z-index:2}
+  .m3d-pin{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:6px;min-height:44px;padding:5px 12px 5px 5px;border-radius:99px;background:var(--black);color:var(--white);border:2px solid var(--white);font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;cursor:pointer;box-shadow:0 8px 18px -8px rgba(0,0,0,.6);transition:background .2s}
+  .m3d-pin b{width:30px;height:30px;border-radius:50%;background:var(--red);display:grid;place-items:center;font-family:var(--f-display);font-weight:400;font-size:16px;letter-spacing:0}
+  .m3d-pin:hover,.m3d-pin.hover,.m3d-pin.active{background:var(--red)}
+  .m3d-pin{padding:5px}
+  .m3d-pin span{display:none}
+  .m3d-pin:hover,.m3d-pin.hover,.m3d-pin.active,.m3d-pin:focus-visible{padding-right:12px;z-index:1}
+  .m3d-pin:hover span,.m3d-pin.hover span,.m3d-pin.active span,.m3d-pin:focus-visible span{display:inline}
+  .m3d-pin:hover b,.m3d-pin.hover b,.m3d-pin.active b{background:var(--black)}
+  .m3d-tools{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:8px;z-index:3}
+  .m3d-tools button{width:44px;height:44px;border-radius:50%;border:0;background:var(--white);color:var(--black);display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 16px -6px rgba(0,0,0,.45);transition:background .2s,color .2s}
+  .m3d-tools button:hover{background:var(--black);color:var(--white)}
+  .m3d-tools svg{width:20px;height:20px}
+  .m3d-info{position:absolute;left:12px;right:12px;bottom:12px;max-width:360px;z-index:3;display:flex;gap:14px;align-items:flex-start;background:var(--black);color:var(--white);border-radius:16px;padding:16px 52px 16px 16px;box-shadow:0 16px 30px -14px rgba(0,0,0,.6)}
+  .m3d-info[hidden]{display:none}
+  .m3d-num{width:46px;height:46px;flex:none;border-radius:12px;background:var(--red);display:grid;place-items:center;font-family:var(--f-display);font-size:26px}
+  .m3d-name{margin:0;font-family:var(--f-display);font-size:28px;line-height:1;text-transform:uppercase}
+  .m3d-desc{margin:6px 0 0;font-size:15px;line-height:1.4;color:#d4d4d4}
+  .m3d-where{margin:8px 0 0;font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+  .m3d-close{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:var(--white);display:grid;place-items:center;cursor:pointer}
+  .m3d-close svg{width:18px;height:18px}
+  .m3d-loading{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray-mid)}
+  .m3d-loading i{width:30px;height:30px;border-radius:50%;border:3px solid rgba(16,16,16,.12);border-top-color:var(--red);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .m3d-ready .m3d-loading{display:none}
+  .m3d-stage:not(.m3d-ready) .m3d-tools{display:none}
+  .m3d-activate{display:none}
+  .m3d-fallback-img{display:none}
+  .m3d-fallback .m3d-fallback-img{display:block;position:absolute;inset:0}
+  .m3d-fallback .m3d-fallback-img img{width:100%;height:100%;object-fit:cover}
+  .m3d-fallback .m3d-loading,.m3d-fallback .m3d-tools{display:none}
+  .m3d figcaption{margin-top:10px;font-size:14px;color:var(--gray-mid)}
+  .m3d figcaption a{color:var(--black);font-weight:700}
+  .route li[data-pin]{cursor:pointer;border-radius:12px;transition:transform .2s var(--ease)}
+  .route li[data-pin]:hover,.route li[data-pin].active{transform:translateX(6px)}
+  .route li[data-pin]:hover .pin,.route li[data-pin].active .pin{background:var(--red);color:var(--white)}
+  @media (max-width:639px){
+    .m3d-stage{aspect-ratio:4/5}
+  }
+  @media (pointer:coarse){
+    .m3d-ready:not(.m3d-active):not(.m3d-fallback) .m3d-activate{display:inline-flex;white-space:nowrap;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4}
+  }
   .route{list-style:none;margin:0;padding:0;position:relative}
   .route::before{content:"";position:absolute;left:21px;top:22px;bottom:22px;border-left:3px dashed var(--red)}
   .route li{position:relative;display:flex;align-items:center;gap:16px;padding:10px 0}
@@ -362,6 +387,9 @@
     .reveal{opacity:1;transform:none}
   }
 </style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
 </head>
 <body>
 <a class="skip" href="#que-es">Saltar al contenido</a>
@@ -588,25 +616,31 @@
 <!-- ================= 5. MAPA ================= -->
 <section class="sec" id="mapa" aria-labelledby="t-mapa">
   <div class="wrap map">
-    <figure class="map-figure reveal">
-      <div class="map-stage">
-        <div class="map-card" id="map-card">
-          <a class="map-link" href="img/plano-circuito.jpg" target="_blank" rel="noopener" aria-label="Ver el plano del circuito en tamaño completo">
-            <picture>
-              <source srcset="img/plano-circuito.webp" type="image/webp">
-              <img src="img/plano-circuito.jpg" width="1024" height="765" loading="lazy" decoding="async" alt="Plano ilustrado del campus USFQ con el recorrido marcado en rojo: estaciones de fútbol, puntería y vóley junto a las canchas, y la zona de resistencia y espacio de auspiciantes en la plaza.">
-            </picture>
-          </a>
-          <span class="map-glare" aria-hidden="true"></span>
-          <!-- Marcadores flotantes: posición en % sobre la imagen -->
-          <span class="map-pin" data-pin="1" style="--x:88%;--y:40%" aria-hidden="true"><b>1</b><em>Fútbol</em></span>
-          <span class="map-pin" data-pin="2" style="--x:77%;--y:51%" aria-hidden="true"><b>2</b><em>Puntería</em></span>
-          <span class="map-pin" data-pin="3" style="--x:66%;--y:43%" aria-hidden="true"><b>3</b><em>Vóley</em></span>
-          <span class="map-pin" data-pin="4" style="--x:38%;--y:50%" aria-hidden="true"><b>4</b><em>Resistencia</em></span>
-          <span class="zoom" aria-hidden="true">Ampliar <svg><use href="#i-arrow"/></svg></span>
+    <figure class="m3d reveal">
+      <div class="m3d-stage" id="mapa3d">
+        <div class="m3d-canvas"></div>
+        <div class="m3d-labels"></div>
+        <div class="m3d-loading" aria-hidden="true"><i></i>Cargando mapa 3D…</div>
+        <button class="btn btn--black m3d-activate" type="button">Toca para explorar en 3D</button>
+        <div class="m3d-tools">
+          <button type="button" data-m3d="in" aria-label="Acercar"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+          <button type="button" data-m3d="out" aria-label="Alejar"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+          <button type="button" data-m3d="reset" aria-label="Volver a la vista general"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
+        <div class="m3d-info" role="status" aria-live="polite" hidden>
+          <span class="m3d-num"></span>
+          <div><p class="m3d-name"></p><p class="m3d-desc"></p><p class="m3d-where"></p></div>
+          <button type="button" class="m3d-close" aria-label="Cerrar y volver a la vista general"><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+        </div>
+        <!-- respaldo si el navegador no soporta WebGL -->
+        <div class="m3d-fallback-img">
+          <picture>
+            <source srcset="img/plano-circuito.webp" type="image/webp">
+            <img src="img/plano-circuito.jpg" width="1024" height="765" loading="lazy" decoding="async" alt="Plano ilustrado del campus USFQ con el recorrido marcado en rojo: estaciones de fútbol, puntería y vóley junto a las canchas, y la zona de resistencia y espacio de auspiciantes en la plaza.">
+          </picture>
         </div>
       </div>
-      <figcaption>Mueve el cursor sobre el plano. Haz clic para verlo en tamaño completo.</figcaption>
+      <figcaption>Arrastra para girar, usa la rueda o pellizca para acercar y toca una estación para ir hacia ella. <a href="img/plano-circuito.jpg" target="_blank" rel="noopener">Ver plano ilustrado</a></figcaption>
     </figure>
     <div class="reveal">
       <p class="eyebrow red">04 · Mapa del circuito</p>
@@ -789,7 +823,7 @@
   <a class="btn btn--red btn--lg" href="/inscripcion" tabindex="-1">Inscribir mi pareja <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
 </div>
 
-<script>
+<script type="module">
 (function(){
   // header al hacer scroll + CTA fijo en móvil
   var header=document.querySelector('.header'), sticky=document.querySelector('.sticky-cta'), hero=document.querySelector('.hero'), final=document.querySelector('.final');
@@ -827,48 +861,29 @@
   }
   tick(); setInterval(tick,1000);
 
-  // mapa 3D: inclina el plano siguiendo el cursor y resalta estaciones
-  var card=document.getElementById('map-card');
-  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(card){
-    // solo se mueve cuando el usuario mueve el cursor; con "reducir movimiento" se inclina menos
-    var MAX=reduce?6:14, raf=0;
-    card.addEventListener('pointermove',function(e){
-      if(e.pointerType==='touch') return;
-      var r=card.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
-      cancelAnimationFrame(raf);
-      raf=requestAnimationFrame(function(){
-        card.classList.add('tracking');
-        card.style.setProperty('--ry',((px-.5)*2*MAX).toFixed(2)+'deg');
-        card.style.setProperty('--rx',((.5-py)*2*MAX*.8).toFixed(2)+'deg');
-        card.style.setProperty('--gx',(px*100).toFixed(1)+'%');
-        card.style.setProperty('--gy',(py*100).toFixed(1)+'%');
-      });
-    });
-    card.addEventListener('pointerleave',function(){
-      cancelAnimationFrame(raf);
-      card.classList.remove('tracking');
-      ['--rx','--ry','--gx','--gy'].forEach(function(p){card.style.removeProperty(p)});
-    });
-  }
-  // pasar el cursor por la lista del recorrido (o por un marcador) resalta la estación en el mapa
-  var pins=document.querySelectorAll('.map-pin'), stops=document.querySelectorAll('.route li[data-pin]');
-  function highlight(id){
-    pins.forEach(function(p){p.classList.toggle('active',p.dataset.pin===id)});
-    stops.forEach(function(s){s.classList.toggle('active',s.dataset.pin===id)});
-  }
+  // mapa 3D: se carga cuando la sección se acerca a la pantalla
+  var stage=document.getElementById('mapa3d'), stops=document.querySelectorAll('.route li[data-pin]'), map3d=null;
+  function markStop(id){stops.forEach(function(s){s.classList.toggle('active',s.dataset.pin===id)})}
   stops.forEach(function(s){
-    s.addEventListener('pointerenter',function(){highlight(s.dataset.pin)});
-    s.addEventListener('pointerleave',function(){highlight(null)});
+    s.tabIndex=0; s.setAttribute('role','button');
+    s.setAttribute('aria-label',s.querySelector('b').textContent+': ver en el mapa 3D');
+    s.addEventListener('pointerenter',function(){map3d&&map3d.highlight(s.dataset.pin)});
+    s.addEventListener('pointerleave',function(){map3d&&map3d.highlight(null)});
+    function go(){ if(map3d){map3d.select(s.dataset.pin); stage.scrollIntoView({behavior:'smooth',block:'center'});} }
+    s.addEventListener('click',go);
+    s.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
   });
-  if(card){
-    card.addEventListener('pointermove',function(e){
-      var hit=null;
-      pins.forEach(function(p){var b=p.querySelector('b').getBoundingClientRect(); if(Math.abs(e.clientX-(b.left+b.width/2))<40 && Math.abs(e.clientY-(b.top+b.height/2))<40) hit=p.dataset.pin;});
-      highlight(hit);
-    });
-    card.addEventListener('pointerleave',function(){highlight(null)});
+  var loaded=false;
+  function load3d(){
+    if(loaded) return; loaded=true;
+    import('./js/mapa3d.js').then(function(m){
+      map3d=m.initMapa3D(stage,{onSelect:markStop});
+    }).catch(function(){stage.classList.add('m3d-fallback')});
   }
+  if('IntersectionObserver' in window){
+    var mo=new IntersectionObserver(function(en){if(en[0].isIntersecting){load3d();mo.disconnect()}},{rootMargin:'600px 0px'});
+    mo.observe(stage);
+  } else load3d();
 
   // aparición al hacer scroll
   var items=document.querySelectorAll('.reveal');
