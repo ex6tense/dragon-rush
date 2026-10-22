@@ -6,6 +6,8 @@
 <title>Dragon Rush 2026 · Circuito deportivo por parejas</title>
 <meta name="description" content="Dragon Rush 2026: circuito deportivo por parejas en el campus USFQ, Cumbayá. Sábado 28 de noviembre de 2026. Inscribe a tu pareja.">
 <meta name="theme-color" content="#ED1C24">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -68,9 +70,14 @@
   .header{position:fixed;inset:0 0 auto 0;z-index:50;padding:14px 0;transition:background .25s,padding .25s,backdrop-filter .25s}
   .header.scrolled{background:rgba(16,16,16,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 0}
   .header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .logo{display:flex;align-items:center;gap:10px;color:var(--white);text-decoration:none;min-height:44px}
-  .logo-slot{width:44px;height:44px;border:2px dashed rgba(255,255,255,.7);border-radius:10px;display:grid;place-items:center;font-family:var(--f-mono);font-size:9px;font-weight:700;letter-spacing:.08em}
-  .logo-text{font-family:var(--f-display);font-size:22px;line-height:.9;text-transform:uppercase}
+  .logo{position:relative;display:flex;align-items:center;min-height:44px;text-decoration:none}
+  .logo img{height:48px;width:auto;transition:opacity .25s}
+  .logo .on-scroll{position:absolute;left:0;top:50%;transform:translateY(-50%);opacity:0}
+  .header.scrolled .logo img{height:40px}
+  .header.scrolled .logo .on-red{opacity:0}
+  .header.scrolled .logo .on-scroll{opacity:1}
+  .mobile-nav .nav-logo{height:56px;width:auto;align-self:flex-start;margin-bottom:18px}
+  .footer-logo{height:auto;width:min(260px,70vw);margin-bottom:6px}
   .nav{display:none}
   .nav ul{list-style:none;display:flex;gap:4px;margin:0;padding:6px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);border-radius:999px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   .nav a{display:block;color:var(--white);text-decoration:none;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:10px 14px;border-radius:999px;transition:background .2s}
@@ -79,9 +86,9 @@
   .header-cta{display:none}
   .menu-btn{width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);color:var(--white);display:grid;place-items:center;cursor:pointer}
   .menu-btn svg{width:22px;height:22px}
-  .mobile-nav{position:fixed;inset:0;z-index:60;background:var(--black);color:var(--white);padding:90px var(--gutter) 32px;display:flex;flex-direction:column;gap:6px;transform:translateY(-100%);transition:transform .35s var(--ease);visibility:hidden}
+  .mobile-nav{position:fixed;inset:0;z-index:60;overflow-y:auto;background:var(--black);color:var(--white);padding:16px var(--gutter) 32px;display:flex;flex-direction:column;gap:6px;transform:translateY(-100%);transition:transform .35s var(--ease);visibility:hidden}
   .mobile-nav.open{transform:none;visibility:visible}
-  .mobile-nav a.link{font-family:var(--f-display);font-size:40px;text-transform:uppercase;text-decoration:none;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mobile-nav a.link{font-family:var(--f-display);font-size:34px;text-transform:uppercase;text-decoration:none;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.12)}
   .mobile-nav .btn{margin-top:auto}
   .mobile-close{position:absolute;top:16px;right:var(--gutter)}
 
@@ -369,9 +376,9 @@
 <header class="header" id="top">
   <div class="wrap">
     <a class="logo" href="#top" aria-label="Dragon Rush 2026, inicio">
-      <!-- LOGO DEL EVENTO: reemplazar .logo-slot por <img src="logo.svg" alt="Dragon Rush 2026"> -->
-      <span class="logo-slot" aria-hidden="true">LOGO</span>
-      <span class="logo-text">Dragon<br>Rush</span>
+      <!-- Sobre el rojo del hero: logo todo blanco. Con fondo negro (al hacer scroll): blanco + dragón rojo -->
+      <img class="on-red" src="img/logo-mono-white.png" alt="Dragon Rush" width="800" height="505">
+      <img class="on-scroll" src="img/logo-white.png" alt="" width="800" height="505" aria-hidden="true">
     </a>
     <nav class="nav" aria-label="Principal">
       <ul>
@@ -389,6 +396,7 @@
 
 <div class="mobile-nav" id="mobile-nav" aria-label="Menú" role="dialog" aria-modal="true">
   <button class="menu-btn mobile-close" type="button" aria-label="Cerrar menú"><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+  <img class="nav-logo" src="img/logo-white.png" alt="Dragon Rush" width="800" height="505">
   <a class="link" href="#que-es">Qué es</a>
   <a class="link" href="#info">Información</a>
   <a class="link" href="#estaciones">Estaciones</a>
@@ -725,7 +733,7 @@
     <div class="footer-grid">
       <div>
         <p class="eyebrow">Contacto</p>
-        <p class="big">Dragon Rush<br>2026</p>
+        <img class="footer-logo" src="img/logo-white.png" alt="Dragon Rush 2026" width="800" height="505" loading="lazy">
       </div>
       <!-- ENLACES: completar el número de WhatsApp de Comercial y el usuario de Instagram del evento -->
       <div class="social">
