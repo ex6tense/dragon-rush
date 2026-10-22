@@ -233,6 +233,10 @@
   .m3d-loading i{width:30px;height:30px;border-radius:50%;border:3px solid rgba(16,16,16,.12);border-top-color:var(--red);animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
   .m3d-ready .m3d-loading{display:none}
+  .m3d-tour{display:none;white-space:nowrap;position:absolute;left:12px;top:12px;z-index:3;align-items:center;gap:8px;padding:8px 12px;border-radius:99px;background:rgba(16,16,16,.82);color:var(--white);font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;pointer-events:none;max-width:calc(100% - 80px)}
+  .m3d-tour i{width:8px;height:8px;flex:none;border-radius:50%;background:var(--red);animation:blink 1.4s ease-in-out infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .m3d-ready.m3d-touring .m3d-tour{display:inline-flex}
   .m3d-stage:not(.m3d-ready) .m3d-tools{display:none}
   .m3d-activate{display:none}
   .m3d-fallback-img{display:none}
@@ -248,7 +252,8 @@
     .m3d-stage{aspect-ratio:4/5}
   }
   @media (pointer:coarse){
-    .m3d-ready:not(.m3d-active):not(.m3d-fallback) .m3d-activate{display:inline-flex;white-space:nowrap;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4}
+    .m3d-ready:not(.m3d-active):not(.m3d-fallback) .m3d-activate{display:inline-flex;white-space:nowrap;position:absolute;left:12px;top:56px;z-index:4;min-height:48px;padding:12px 20px;font-size:13px}
+    .m3d-tour-hint{display:none}
   }
   .route{list-style:none;margin:0;padding:0;position:relative}
   .route::before{content:"";position:absolute;left:21px;top:22px;bottom:22px;border-left:3px dashed var(--red)}
@@ -620,8 +625,9 @@
       <div class="m3d-stage" id="mapa3d">
         <div class="m3d-canvas"></div>
         <div class="m3d-labels"></div>
+        <span class="m3d-tour" aria-hidden="true"><i></i>Recorrido automático<span class="m3d-tour-hint">&nbsp;· toca para explorar</span></span>
         <div class="m3d-loading" aria-hidden="true"><i></i>Cargando mapa 3D…</div>
-        <button class="btn btn--black m3d-activate" type="button">Toca para explorar en 3D</button>
+        <button class="btn btn--black m3d-activate" type="button">Explorar en 3D <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
         <div class="m3d-tools">
           <button type="button" data-m3d="in" aria-label="Acercar"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
           <button type="button" data-m3d="out" aria-label="Alejar"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg></button>

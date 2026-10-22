@@ -239,6 +239,12 @@ export function initMapa3D(root, { onSelect } = {}) {
   const curve = new THREE.CatmullRomCurve3(routePts, true, 'catmullrom', 0.4);
   add(new THREE.Mesh(new THREE.TubeGeometry(curve, 160, 0.38, 8, true), mat(C.red, { flatShading: false, emissive: 0x5a0306 })), { cast: false });
 
+  // pareja que corre por la ruta
+  const runners = [C.red, C.black].map(color => {
+    const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 0.9, 4, 10), mat(color, { flatShading: false }));
+    m.castShadow = true; scene.add(m); return m;
+  });
+
   // ---------- estaciones: marcadores 3D ----------
   const pinGroups = STATIONS.map(st => {
     const g = new THREE.Group();
@@ -270,15 +276,33 @@ export function initMapa3D(root, { onSelect } = {}) {
   controls.minDistance = 22; controls.maxDistance = 170;
   controls.maxPolarAngle = Math.PI * 0.44; controls.minPolarAngle = 0.15;
   controls.screenSpacePanning = false;
-  controls.autoRotate = !reduceMotion; controls.autoRotateSpeed = 0.55;
+  controls.autoRotate = false; controls.autoRotateSpeed = 0.35;
   controls.enableZoom = false; // se activa al interactuar, para no secuestrar el scroll de la página
   controls.update();
 
-  const stopAuto = () => { controls.autoRotate = false; };
-  controls.addEventListener('start', stopAuto);
+  // ---------- recorrido automático ----------
+  // Por defecto la cámara recorre lentamente: vista general → 1 → 2 → 3 → 4 → vista general…
+  // Se detiene en cuanto el usuario interactúa (arrastrar, rueda, botones, estaciones).
+  let touring = true;
+  const TOUR = [null, '1', '2', '3', '4'];
+  const TRAVEL = 3800, DWELL = 3400;
+  let tourIdx = 0, tourNext = 0;
+  root.classList.add('m3d-touring');
+  function stopTour() {
+    if (!touring) return;
+    touring = false; controls.autoRotate = false;
+    root.classList.remove('m3d-touring');
+  }
+  const stopAuto = stopTour;
+  controls.addEventListener('start', stopTour);
+  if (!coarse) {
+    // en táctil, deslizar el dedo para hacer scroll no debe cortar el recorrido
+    renderer.domElement.addEventListener('wheel', stopTour, { passive: true });
+    renderer.domElement.addEventListener('pointerdown', stopTour);
+  }
 
   // en táctil: un toque "activa" el mapa; mientras tanto el dedo hace scroll normal
-  const activate = () => { root.classList.add('m3d-active'); controls.enabled = true; controls.enableZoom = true; };
+  const activate = () => { stopTour(); root.classList.add('m3d-active'); controls.enabled = true; controls.enableZoom = true; };
   if (coarse) {
     controls.enabled = false;
     root.querySelector('.m3d-activate')?.addEventListener('click', activate);
@@ -296,23 +320,22 @@ export function initMapa3D(root, { onSelect } = {}) {
 
   // ---------- animación de cámara ----------
   let fly = null;
-  const ease = t => 1 - Math.pow(1 - t, 3);
-  function flyTo(pos, target, ms = 1200) {
-    if (reduceMotion) { camera.position.copy(pos); controls.target.copy(target); controls.update(); return; }
-    fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, start: performance.now(), ms };
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  function flyTo(pos, target, ms = 1200, { force = false, ease = easeOut } = {}) {
+    if (reduceMotion && !force) { camera.position.copy(pos); controls.target.copy(target); controls.update(); return; }
+    fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, start: performance.now(), ms, ease };
   }
 
   let active = null;
-  function select(id) {
-    stopAuto();
-    if (coarse) activate();
+  function showStation(id, ms, opts) {
     active = id;
     const g = pinGroups.find(p => p.userData.st.id === id);
     const st = g.userData.st;
     const target = g.position.clone();
     const dir = camera.position.clone().sub(controls.target).setY(0).normalize();
     const pos = target.clone().add(dir.multiplyScalar(26)).setY(24);
-    flyTo(pos, target);
+    flyTo(pos, target, ms, opts);
     labels.forEach(l => l.el.classList.toggle('active', l.el.dataset.pin === id));
     info.hidden = false;
     info.querySelector('.m3d-num').textContent = st.id;
@@ -321,11 +344,20 @@ export function initMapa3D(root, { onSelect } = {}) {
     info.querySelector('.m3d-where').textContent = st.where;
     onSelect?.(id);
   }
-  function reset() {
+  function showHome(ms, opts) {
     active = null; info.hidden = true;
     labels.forEach(l => l.el.classList.remove('active'));
-    flyTo(HOME.pos.clone(), HOME.target.clone());
+    flyTo(HOME.pos.clone(), HOME.target.clone(), ms, opts);
     onSelect?.(null);
+  }
+  function select(id) { stopTour(); if (coarse) activate(); showStation(id); }
+  function reset() { stopTour(); showHome(); }
+  function tourStep(now) {
+    const id = TOUR[tourIdx];
+    const opts = { force: true, ease: easeInOut };
+    id ? showStation(id, TRAVEL, opts) : showHome(TRAVEL, opts);
+    tourIdx = (tourIdx + 1) % TOUR.length;
+    tourNext = now + TRAVEL + (id ? DWELL : DWELL + 1500);
   }
   function highlight(id) {
     labels.forEach(l => l.el.classList.toggle('hover', l.el.dataset.pin === id));
@@ -358,8 +390,13 @@ export function initMapa3D(root, { onSelect } = {}) {
   const v = new THREE.Vector3();
   function frame(now) {
     raf = requestAnimationFrame(frame);
+    if (touring) {
+      if (!tourNext) tourNext = now + 2500; // pausa inicial en la vista general
+      else if (now >= tourNext && !fly) tourStep(now);
+      controls.autoRotate = !fly; // giro lento mientras se detiene en cada punto
+    }
     if (fly) {
-      const t = Math.min(1, (now - fly.start) / fly.ms), k = ease(t);
+      const t = Math.min(1, (now - fly.start) / fly.ms), k = fly.ease(t);
       camera.position.lerpVectors(fly.p0, fly.p1, k);
       controls.target.lerpVectors(fly.t0, fly.t1, k);
       if (t === 1) fly = null;
@@ -373,6 +410,11 @@ export function initMapa3D(root, { onSelect } = {}) {
       g.scale.setScalar(s);
       g.userData.head.position.y = 5.8 + (reduceMotion ? 0 : Math.sin(time * 2 + i) * 0.25);
       g.userData.ring.scale.setScalar(1 + (reduceMotion ? 0 : (time * 0.8 + i * 0.25) % 1 * 0.6));
+    });
+    runners.forEach((r, i) => {
+      const u = ((time * 0.025) + i * 0.012) % 1;
+      curve.getPointAt(u, r.position); r.position.y = 1.0 + Math.abs(Math.sin(time * 9 + i * 1.6)) * (reduceMotion ? 0 : 0.35);
+      r.position.x += i ? 0.6 : -0.6;
     });
     renderer.render(scene, camera);
     // posicionar etiquetas HTML
