@@ -220,6 +220,44 @@ export function initMapa3D(root, { onSelect } = {}) {
     tent(-45, z, tentColors[i], 1);                                    // cuadrángulo oeste
     tent(-22, z, tentColors[(i + 1) % 4], -1);                         // cuadrángulo este
   });
+
+  // ---------- personitas ----------
+  // cuerpo (cápsula) + cabeza + brazos; `cheer` = brazos arriba. Se animan en el loop (saltan o se balancean).
+  const SKIN = [0xf1c6a0, 0xd9a47a, 0xb07a52, 0x8a5a3c, 0xe8b894];
+  const SHIRT = [C.red, C.black, C.pure, 0x2f5fd0, 0xf2c94c, 0x3a9b6a, 0xe2814e, C.red];
+  const people = [];
+  const person = (x, z, { cheer = false, jump = 0, sway = 0, face = 0 } = {}) => {
+    const g = new THREE.Group();
+    const shirt = SHIRT[Math.floor(rnd(0, SHIRT.length))];
+    const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.36, 1.1, 6), mat(0x2b2f3a));
+    legs.position.y = 0.55; g.add(legs);
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 0.7, 3, 8), mat(shirt));
+    body.position.y = 1.55; g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.36, 10, 8), mat(SKIN[Math.floor(rnd(0, SKIN.length))], { flatShading: false }));
+    head.position.y = 2.45; g.add(head);
+    [-1, 1].forEach(side => {
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.95, 5), mat(shirt));
+      arm.position.set(side * 0.52, cheer ? 2.35 : 1.45, 0);
+      arm.rotation.z = cheer ? -side * 0.35 : side * 0.12;
+      g.add(arm);
+    });
+    g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    g.position.set(x, 0, z); g.rotation.y = face;
+    g.userData = { jump, sway, phase: rnd(0, Math.PI * 2), speed: rnd(5.5, 7.5) };
+    scene.add(g); people.push(g);
+    return g;
+  };
+  // meta: grupo saltando frente a las gradas del Hall, a ambos lados del camino
+  [[-41, -58], [-39, -55.5], [-42.5, -54], [-38.5, -59], [-40.5, -52.5],
+   [-28.5, -58], [-26.5, -55.5], [-29, -53], [-25, -58.5], [-27.5, -51.5]].forEach(([x, z]) =>
+    person(x, z, { cheer: true, jump: 1.1, face: Math.atan2(-33.75 - x, -45 - z) + Math.PI }));
+  // stands: una persona atendiendo detrás de la mesa y un visitante frente a cada carpa
+  [-57, -50, -43, -36].forEach(z => {
+    person(-45.6, z + rnd(-0.8, 0.8), { sway: 0.06, face: Math.PI / 2 });                // atiende (oeste)
+    person(-41.3, z + rnd(-1, 1), { sway: 0.08, face: -Math.PI / 2 });                   // visita (oeste)
+    person(-21.4, z + rnd(-0.8, 0.8), { sway: 0.06, face: -Math.PI / 2 });               // atiende (este)
+    person(-25.7, z + rnd(-1, 1), { sway: 0.08, face: Math.PI / 2 });                    // visita (este)
+  });
   // Planta Física: edificios largos de techo verde azulado junto a Diego de Robles
   building(-92, -74, -80, -46, 4, C.pink, C.teal, 'hip', 2.4);
   building(-84, -42, -72, -12, 4, C.pink, C.teal, 'hip', 2.4);
@@ -545,6 +583,13 @@ export function initMapa3D(root, { onSelect } = {}) {
       curve.getPointAt(u, r.position);
       r.position.y = 1.5 + Math.abs(Math.sin(time * 9 + i * 1.6)) * (reduceMotion ? 0 : 0.5);
       r.position.x += i ? 0.9 : -0.9;
+    });
+    // personitas: saltan en la meta, se balancean en los stands (con "reducir movimiento", a la mitad)
+    const pAmp = reduceMotion ? 0.5 : 1;
+    people.forEach(p => {
+      const d = p.userData;
+      if (d.jump) p.position.y = Math.abs(Math.sin(time * d.speed + d.phase)) * d.jump * pAmp;
+      if (d.sway) p.rotation.z = Math.sin(time * 1.6 + d.phase) * d.sway * pAmp;
     });
     renderer.render(scene, camera);
     // posicionar etiquetas HTML

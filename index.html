@@ -893,7 +893,7 @@
   var loaded=false;
   function load3d(){
     if(loaded) return; loaded=true;
-    import('./js/mapa3d.js?v=23').then(function(m){
+    import('./js/mapa3d.js?v=24').then(function(m){
       map3d=m.initMapa3D(stage,{onSelect:markStop});
     }).catch(function(){stage.classList.add('m3d-fallback')});
   }
