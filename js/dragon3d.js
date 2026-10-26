@@ -3,7 +3,8 @@
 // y en celular gira lento y responde al scroll.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import DRAGON from './dragon-shape.js';
+import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+import DRAGON from './dragon-shape.js?v=2';
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = window.matchMedia('(pointer: coarse)').matches;
@@ -40,16 +41,17 @@ export function initDragon3D(mount, hero) {
     holes.forEach(h => s.holes.push(new THREE.Path(h.map(([x, y]) => new THREE.Vector2(x, y)))));
     return s;
   });
-  const depth = 0.22;
-  const geo = new THREE.ExtrudeGeometry(shapes, {
-    depth, bevelEnabled: true, bevelThickness: 0.045, bevelSize: 0.018, bevelSegments: 4, curveSegments: 4,
+  // más delgado y con bisel redondeado; normales suavizadas en los costados (sin bandas) pero con aristas nítidas
+  const depth = 0.14;
+  let geo = new THREE.ExtrudeGeometry(shapes, {
+    depth, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.014, bevelSegments: 6, curveSegments: 1,
   });
   geo.translate(0, 0, -depth / 2);
-  geo.computeVertexNormals();
+  geo = toCreasedNormals(geo, Math.PI / 4);
 
   // caras: negro brillante (contrasta con el hero rojo); laterales y bisel: rojo metálico del logo
-  const faceMat = new THREE.MeshPhysicalMaterial({ color: 0x141414, metalness: 0.55, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.12 });
-  const sideMat = new THREE.MeshPhysicalMaterial({ color: 0xed1c24, metalness: 0.65, roughness: 0.28, clearcoat: 0.6, emissive: 0x3a0002 });
+  const faceMat = new THREE.MeshPhysicalMaterial({ color: 0x121212, metalness: 0.5, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.18, envMapIntensity: 0.9 });
+  const sideMat = new THREE.MeshPhysicalMaterial({ color: 0xe0161e, metalness: 0.55, roughness: 0.36, clearcoat: 0.5, clearcoatRoughness: 0.25, emissive: 0x2a0002, envMapIntensity: 0.8 });
   const dragon = new THREE.Mesh(geo, [faceMat, sideMat]);
 
   const pivot = new THREE.Group();

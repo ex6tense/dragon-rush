@@ -873,7 +873,7 @@
   // dragón 3D del hero: se carga cuando la página ya terminó de cargar, para no frenar el inicio
   var heroDragon=document.querySelector('.hero-dragon');
   function loadDragon(){
-    import('./js/dragon3d.js?v=2').then(function(m){m.initDragon3D(heroDragon,document.querySelector('.hero'))}).catch(function(){});
+    import('./js/dragon3d.js?v=3').then(function(m){m.initDragon3D(heroDragon,document.querySelector('.hero'))}).catch(function(){});
   }
   function whenIdle(fn){ ('requestIdleCallback' in window) ? requestIdleCallback(fn,{timeout:1500}) : setTimeout(fn,300) }
   if(document.readyState==='complete') whenIdle(loadDragon); else window.addEventListener('load',function(){whenIdle(loadDragon)});
