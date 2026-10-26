@@ -99,11 +99,11 @@
     display:flex;flex-direction:column}
   .hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
     background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,transparent 25%,transparent 55%,rgba(0,0,0,.55) 100%)}
-  /* espacio para foto propia: definir --hero-photo:url('foto.jpg') en .hero-photo */
-  .hero-photo{position:absolute;inset:0;z-index:-2;background-image:var(--hero-photo,none);background-size:cover;background-position:65% center;mix-blend-mode:luminosity;opacity:.55}
-  .hero-photo-slot{position:absolute;z-index:-1;right:6%;top:18%;width:min(46vw,520px);aspect-ratio:3/4;color:rgba(255,255,255,.75);display:none}
-  .hero-photo-slot .slot{width:100%;height:100%;background:rgba(0,0,0,.12);align-content:start;padding-top:28px}
-  .has-photo .hero-photo-slot{display:none!important}
+  /* dragón 3D del logo (js/dragon3d.js) */
+  .hero-dragon{position:absolute;z-index:-1;right:-16vw;top:70px;width:82vw;aspect-ratio:1;pointer-events:none;opacity:0;transform:scale(.92);transition:opacity .9s var(--ease),transform 1.1s var(--ease)}
+  .hero-dragon.ready{opacity:1;transform:none}
+  .hero-dragon canvas{display:block;width:100%!important;height:100%!important;filter:drop-shadow(0 28px 36px rgba(40,0,2,.45))}
+  .hero-dragon.grabbing canvas{cursor:grabbing}
 
   /* efecto velocidad */
   .speed{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
@@ -366,7 +366,10 @@
     .menu-btn{display:none}
     .sticky-cta{display:none}
     .sec{padding:120px 0}
-    .hero-photo-slot{display:block}
+    .hero-dragon{right:-1%;top:max(64px,5vh);width:min(54vw,1000px);height:min(80vh,860px);aspect-ratio:auto;pointer-events:auto;z-index:0}
+    .hero-dragon canvas{cursor:grab}
+    .hero-body{position:relative;z-index:1;pointer-events:none}
+    .hero-body > *{pointer-events:auto}
     .hero-body{display:grid;grid-template-columns:1fr 340px;grid-template-rows:1fr auto;align-items:end;gap:28px 48px;padding-bottom:48px}
     .hero-main{grid-column:1;grid-row:2;display:flex;flex-direction:column;gap:22px}
     .hero-tag{grid-column:1;grid-row:1;align-self:center}
@@ -466,12 +469,8 @@
 <main>
 <!-- ================= 1. HERO ================= -->
 <section class="hero" aria-labelledby="hero-title">
-  <!-- FOTO PROPIA DEL HERO: cuando exista, poner style="--hero-photo:url('img/hero.jpg')" en .hero-photo
-       y añadir la clase has-photo a <section class="hero">. No usar fotos de stock ni de otras carreras. -->
-  <div class="hero-photo" aria-hidden="true"></div>
-  <div class="hero-photo-slot" aria-hidden="true">
-    <div class="slot">Foto propia del evento<small>Espacio reservado · sin fotos de stock</small></div>
-  </div>
+  <!-- Dragón 3D del logo: se carga después de la página (js/dragon3d.js). Arrástralo para girarlo. -->
+  <div class="hero-dragon" aria-hidden="true"></div>
   <div class="speed" aria-hidden="true">
     <i style="--t:22%;--w:70%;--h:14px;--d:2.6s;--o:.22"></i>
     <i style="--t:30%;--w:45%;--h:6px;--d:1.9s;--dl:-.8s"></i>
@@ -513,7 +512,7 @@
         <div><b data-u="m">--</b><span>Min</span></div>
         <div><b data-u="s">--</b><span>Seg</span></div>
       </div>
-      <a class="more" href="#fechas">Kit garantizado hasta el 13 nov <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a class="more" href="#fechas">Inscripciones hasta el 24 nov <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </aside>
   </div>
 </section>
@@ -551,11 +550,11 @@
     <div class="info-grid">
       <article class="info price reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-ticket"/></svg></span>
-        <div><h3>Inscripción <span class="tag">Provisional</span></h3><p>$25<small>por pareja · precio más bajo si te inscribes antes del 13 de noviembre</small></p></div>
+        <div><h3>Inscripción</h3><p>$25<small>por pareja · precio único</small></p></div>
       </article>
       <article class="info reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-cal"/></svg></span>
-        <div><h3>Fecha</h3><p>Sábado 28 de noviembre de 2026<small>Entrega de kits desde las 07:00</small></p></div>
+        <div><h3>Fecha</h3><p>Sábado 28 de noviembre de 2026<small>Registro desde las 07:00</small></p></div>
       </article>
       <article class="info reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-pin"/></svg></span>
@@ -566,8 +565,8 @@
         <div><h3>Formato</h3><p>Parejas, cualquier combinación</p></div>
       </article>
       <article class="info reveal">
-        <span class="ic" aria-hidden="true"><svg><use href="#i-bag"/></svg></span>
-        <div><h3>Incluye</h3><p>Bolso del evento, dorsal, pasaporte de carrera, hidratación y productos de los auspiciantes</p></div>
+        <span class="ic" aria-hidden="true"><svg><use href="#i-clock"/></svg></span>
+        <div><h3>Horario</h3><p>Registro 07:00 · primera salida 08:30<small>Horario provisional, sujeto a confirmación</small></p></div>
       </article>
       <article class="info reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-cap"/></svg></span>
@@ -672,7 +671,7 @@
       <p class="provisional"><svg aria-hidden="true"><use href="#i-clock"/></svg>Horario provisional, sujeto a confirmación</p>
     </div>
     <ol class="timeline">
-      <li class="reveal"><time>07:00</time><p>Apertura y entrega de kits</p></li>
+      <li class="reveal"><time>07:00</time><p>Apertura y registro</p></li>
       <li class="reveal key"><time>08:00</time><p>Briefing general obligatorio</p></li>
       <li class="reveal"><time>08:30</time><p>Primera salida</p></li>
       <li class="reveal"><time>10:10</time><p>Llegada de las últimas parejas</p></li>
@@ -702,23 +701,23 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <p class="eyebrow red">07 · Fechas clave</p>
-      <h2 class="display h2" id="t-fechas">No te quedes<br>sin kit</h2>
+      <h2 class="display h2" id="t-fechas">No te quedes<br>fuera</h2>
     </div>
     <div class="dates">
       <article class="date hot reveal">
-        <div class="d">13<small>Nov</small></div>
-        <h3>Cierre con kit garantizado</h3>
-        <p>Inscríbete antes y asegura tu bolso del evento.</p>
+        <div class="d">24<small>Nov</small></div>
+        <h3>Cierre de inscripciones</h3>
+        <p>Último día para inscribir a tu pareja. $25 por pareja.</p>
       </article>
       <article class="date reveal">
-        <div class="d">24<small>Nov</small></div>
-        <h3>Cierre definitivo de inscripciones</h3>
-        <p>Después del 13 hay recargo y el kit queda sujeto a disponibilidad.</p>
+        <div class="d">25<small>Nov</small></div>
+        <h3>Publicación de categorías</h3>
+        <p>Las categorías se definen según los inscritos.</p>
       </article>
       <article class="date event reveal">
         <div class="d">28<small>Nov</small></div>
         <h3>Día del evento</h3>
-        <p>Campus USFQ, Cumbayá. Entrega de kits desde las 07:00.</p>
+        <p>Campus USFQ, Cumbayá. Registro desde las 07:00.</p>
       </article>
     </div>
   </div>
@@ -743,7 +742,7 @@
       <li>El pasaporte de carrera es obligatorio. Una pareja que llegue a la meta sin el pasaporte marcado por los cuatro jueces no tiene tiempo válido. Si el pasaporte se pierde o se daña, la pareja debe reportarse en consolidación para validar su tiempo con los registros de los jueces.</li>
       <li>La decisión de los jueces sobre si un reto fue completado es final.</li>
       <li>La pulsera de identificación es personal y no transferible.</li>
-      <li>Todos los participantes aceptan la declaración de condiciones físicas al inscribirse y la ratifican con su firma al recibir el kit. Sin esa firma no se permite competir.</li>
+      <li>Todos los participantes aceptan la declaración de condiciones físicas al inscribirse y la ratifican con su firma en el registro. Sin esa firma no se permite competir.</li>
       <li>Si una pareja decide abandonar la competencia, debe reportarse obligatoriamente en la meta.</li>
       <li>La organización puede retirar a una pareja de la competencia por razones de seguridad o por incumplimiento del reglamento.</li>
       <li>Se premian los tres primeros puestos de cada categoría. Las categorías se definen según los inscritos y se publican el 25 de noviembre de 2026.</li>
@@ -815,10 +814,10 @@
         <p class="eyebrow">Contacto</p>
         <img class="footer-logo" src="img/logo-white.png" alt="Dragon Rush 2026" width="800" height="505" loading="lazy">
       </div>
-      <!-- ENLACES: completar el número de WhatsApp de Comercial y el usuario de Instagram del evento -->
+      <!-- ENLACES: falta completar el número de WhatsApp de Comercial -->
       <div class="social">
         <a href="https://wa.me/593XXXXXXXXX" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>
-        <a href="https://instagram.com/USUARIO_EVENTO" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-ig"/></svg>Instagram</a>
+        <a href="https://www.instagram.com/dragonrush26/" target="_blank" rel="noopener" aria-label="Instagram de Dragon Rush, @dragonrush26"><svg aria-hidden="true"><use href="#i-ig"/></svg>@dragonrush26</a>
       </div>
     </div>
     <small>Dragon Rush 2026 · Circuito deportivo por parejas · Campus USFQ, Cumbayá, Ecuador</small>
@@ -866,6 +865,14 @@
     el.m.textContent=pad(Math.floor(s%3600/60)); el.s.textContent=pad(s%60);
   }
   tick(); setInterval(tick,1000);
+
+  // dragón 3D del hero: se carga cuando la página ya terminó de cargar, para no frenar el inicio
+  var heroDragon=document.querySelector('.hero-dragon');
+  function loadDragon(){
+    import('./js/dragon3d.js').then(function(m){m.initDragon3D(heroDragon,document.querySelector('.hero'))}).catch(function(){});
+  }
+  function whenIdle(fn){ ('requestIdleCallback' in window) ? requestIdleCallback(fn,{timeout:1500}) : setTimeout(fn,300) }
+  if(document.readyState==='complete') whenIdle(loadDragon); else window.addEventListener('load',function(){whenIdle(loadDragon)});
 
   // mapa 3D: se carga cuando la sección se acerca a la pantalla
   var stage=document.getElementById('mapa3d'), stops=document.querySelectorAll('.route li[data-pin]'), map3d=null;
