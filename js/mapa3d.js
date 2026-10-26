@@ -1,28 +1,50 @@
 // Mapa 3D del circuito Dragon Rush (Three.js).
-// Campus low-poly construido a partir del plano ilustrado (img/plano-circuito.jpg).
-// Coordenadas: se usan las del plano en píxeles (1024x765) y se convierten con P().
+// Campus USFQ en estilo low-poly, armado a partir de las tomas aéreas del recorrido virtual:
+//   oeste: césped con el Hall Principal y sus gradas, Espejo; centro: Galileo y el lago; este: Pagoda,
+//   torre, cancha sintética y tenis; franja sur: camino de palmeras, cuadrángulos, vóley playa y césped grande.
+// Coordenadas en unidades de mundo (x = este, z = sur). Distancias aproximadas.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// view = desde dónde mira la cámara al ir a esa estación (offset respecto al punto)
 const STATIONS = [
-  { id: '1', name: 'Fútbol', desc: 'Reto de precisión con balón.', where: 'Canchas de fútbol', px: [895, 375] },
-  { id: '2', name: 'Puntería', desc: 'Lanzamientos a zonas de puntaje.', where: 'Canchas de tenis', px: [795, 432] },
-  { id: '3', name: 'Vóley', desc: 'Reto de control y continuidad.', where: 'Canchas de arena', px: [688, 382] },
-  { id: '4', name: 'Resistencia', desc: 'Reto de fuerza y aguante.', where: 'Cuadrángulos', px: [400, 400] },
+  { id: '1', name: 'Fútbol', desc: 'Reto de precisión con balón.', where: 'Cancha de fútbol', at: [86, -22], view: [22, 30, 38] },
+  { id: '2', name: 'Puntería', desc: 'Lanzamientos a zonas de puntaje.', where: 'Canchas de tenis', at: [108, 9], view: [8, 32, 40] },
+  { id: '3', name: 'Vóley', desc: 'Reto de control y continuidad.', where: 'Cancha de vóley playa', at: [54, 44], view: [-12, 28, 34] },
+  { id: '4', name: 'Resistencia', desc: 'Reto de fuerza y aguante.', where: 'Cuadrángulos', at: [-33, 33], view: [24, 30, 36] },
+  { id: 'meta', name: 'Meta', desc: 'Suben las gradas y cruzan juntos.', where: 'Gradas del Hall Principal', at: [-55, 33], view: [40, 30, 22], flag: true },
+];
+
+const TAGS = [
+  { name: 'Hall Principal', at: [-71, 10, 24] },
+  { name: 'Espejo', at: [-63, 12, -39] },
+  { name: 'Galileo', at: [0, 8.5, -6] },
+  { name: 'Einstein', at: [-4, 15.5, -48] },
+  { name: 'Casa Blanca', at: [23, 9, -47] },
+  { name: 'Lago', at: [31, 1.5, 14] },
+  { name: 'Pagoda', at: [59, 13, -16] },
+  { name: 'Coliseo', at: [120, 12, -35] },
 ];
 
 const C = {
-  ground: 0xcfe0b8, grass: 0x86b96b, park: 0x6fa95a, field: 0x4fa84a, sand: 0xe8d29c,
-  court: 0x9aa3a8, plaza: 0xe9e0cc, path: 0xd9d4c7, water: 0x6fb3d6,
-  wall: 0xe7b8a0, wallDark: 0xc98e74, brick: 0xa4553d, roof: 0xb5543c, roofGreen: 0x3e8e6e,
-  roofGray: 0x8c9399, glass: 0x5b7fa6, glassLight: 0x86a9cc, gold: 0xd4a72c, stone: 0xd9c7a8,
-  tree: 0x3f7f3a, treeLight: 0x5f9e45, trunk: 0x7a5236, white: 0xffffff, navy: 0x2e3f73,
-  red: 0xed1c24, black: 0x101010,
+  ground: 0xcfd8bd, campus: 0xb9cf9a, lawn: 0x5fae4a, lawn2: 0x67b552, grassField: 0x6cb251, bigField: 0x63a84a,
+  path: 0xdcd5c6, asphalt: 0x5d6166, sand: 0xe6d3a3, water: 0x4f8a5e, stone: 0xb9b3a6,
+  courtBlue: 0x2fa3d6, courtGreen: 0x3a9b6a,
+  hallWall: 0xb5533c, hallRoof: 0x4a3530, espejoWall: 0xdcae95, espejoRoof: 0xe8987a,
+  brick: 0xa9503b, darkRoof: 0x4b3a36, glassRoof: 0xa8bfcc, white: 0xf1efe8, whiteRoof: 0xc9c9c4,
+  teal: 0x3f9c8e, pink: 0xe2b9a8, pagodaRoof: 0x3f8f6f, pagodaWall: 0xd8cbb0,
+  brownRoof: 0x6b4a3f, cream: 0xd8c7ab, coliseoRoof: 0x8f9c8c, houseRoof: 0xe2814e, houseWall: 0xefe4d2,
+  gold: 0xd4a72c, tree: 0x3f7f3a, treeLight: 0x5f9e45, treeDark: 0x2f6a3a, trunk: 0x7a5236, palm: 0x4f8f3a,
+  red: 0xed1c24, black: 0x101010, pure: 0xffffff,
 };
 
-const P = (px, py) => new THREE.Vector3((px - 512) / 10, 0, (py - 400) / 10);
+const V = (x, z, y = 0) => new THREE.Vector3(x, y, z);
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = window.matchMedia('(pointer: coarse)').matches;
+
+// pseudoaleatorio determinista (el campus se ve igual en cada carga)
+let seed = 7;
+const rnd = (a = 0, b = 1) => { seed = (seed * 16807) % 2147483647; return a + (seed / 2147483647) * (b - a); };
 
 export function initMapa3D(root, { onSelect } = {}) {
   const canvasWrap = root.querySelector('.m3d-canvas');
@@ -46,24 +68,25 @@ export function initMapa3D(root, { onSelect } = {}) {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xeeeeed);
-  scene.fog = new THREE.Fog(0xeeeeed, 140, 260);
+  scene.fog = new THREE.Fog(0xeeeeed, 320, 560);
 
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 600);
-  // vista general: en pantallas angostas se centra más en el circuito
+  const camera = new THREE.PerspectiveCamera(38, 1, 1, 900);
+  // vista general: desde el sur, mirando el campus completo
   const narrow = canvasWrap.clientWidth < 520;
   const HOME = narrow
-    ? { pos: new THREE.Vector3(58, 64, 70), target: new THREE.Vector3(16, 0, 2) }
-    : { pos: new THREE.Vector3(46, 52, 64), target: new THREE.Vector3(8, 0, 0) };
+    ? { pos: new THREE.Vector3(40, 172, 166), target: new THREE.Vector3(36, 0, 6) }
+    : { pos: new THREE.Vector3(30, 150, 184), target: new THREE.Vector3(28, 0, 2) };
   camera.position.copy(HOME.pos);
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x9fb38a, 1.6));
   const sun = new THREE.DirectionalLight(0xfff1dc, 2.4);
-  sun.position.set(-50, 90, 40);
+  sun.position.set(-90, 160, 80);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(coarse ? 1024 : 2048, coarse ? 1024 : 2048);
-  Object.assign(sun.shadow.camera, { left: -75, right: 75, top: 60, bottom: -60, near: 10, far: 220 });
-  sun.shadow.bias = -0.0005;
-  scene.add(sun);
+  sun.shadow.mapSize.set(coarse ? 1536 : 2048, coarse ? 1536 : 2048);
+  Object.assign(sun.shadow.camera, { left: -150, right: 150, top: 120, bottom: -120, near: 20, far: 420 });
+  sun.shadow.bias = -0.0006;
+  sun.target.position.set(26, 0, 0);
+  scene.add(sun, sun.target);
 
   // ---------- helpers ----------
   const matCache = new Map();
@@ -74,39 +97,56 @@ export function initMapa3D(root, { onSelect } = {}) {
   };
   const add = (mesh, { cast = true, receive = true } = {}) => { mesh.castShadow = cast; mesh.receiveShadow = receive; scene.add(mesh); return mesh; };
 
-  // zona plana (suelo de color) en coordenadas del plano
-  const flat = (x1, y1, x2, y2, color, h = 0.08, tex) => {
-    const a = P(x1, y1), b = P(x2, y2);
-    const w = b.x - a.x, d = b.z - a.z;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), tex ? new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }) : mat(color));
-    m.position.set(a.x + w / 2, h / 2, a.z + d / 2);
+  // superficie plana rectangular (x1,z1)-(x2,z2)
+  const flat = (x1, z1, x2, z2, color, h = 0.1, map) => {
+    const w = x2 - x1, d = z2 - z1;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), map ? new THREE.MeshStandardMaterial({ map, roughness: 0.95 }) : mat(color));
+    m.position.set(x1 + w / 2, h / 2, z1 + d / 2);
+    return add(m, { cast: false });
+  };
+  // superficie plana con forma libre (lista de [x,z])
+  const flatShape = (pts, color, h = 0.1, y = 0) => {
+    const s = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+    const g = new THREE.ExtrudeGeometry(s, { depth: h, bevelEnabled: false, curveSegments: 8 });
+    g.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(g, mat(color, { flatShading: false }));
+    m.position.y = y;
     return add(m, { cast: false });
   };
 
-  // edificio: bloque + techo a cuatro aguas
-  const building = (cx, cy, wpx, dpx, h, wall, roof, roofH = 2.4, rot = 0) => {
-    const g = new THREE.Group();
-    const w = wpx / 10, d = dpx / 10;
+  // edificio rectangular; roof: 'hip' (cuatro aguas), 'flat' o null
+  const building = (x1, z1, x2, z2, h, wall, roofColor, roof = 'hip', roofH = 3) => {
+    const w = x2 - x1, d = z2 - z1, cx = x1 + w / 2, cz = z1 + d / 2;
     const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(wall));
-    body.position.y = h / 2; body.castShadow = body.receiveShadow = true; g.add(body);
-    // franja de ventanas
-    const win = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, h * 0.18, d + 0.05), mat(C.wallDark));
-    win.position.y = h * 0.62; g.add(win);
-    if (roof != null) {
-      const r = new THREE.Mesh(new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1), mat(roof));
-      r.rotation.y = Math.PI / 4; r.scale.set(w * 1.06, roofH, d * 1.06);
-      r.position.y = h + roofH / 2; r.castShadow = true; g.add(r);
+    body.position.set(cx, h / 2, cz); add(body);
+    if (roof === 'hip') {
+      const r = new THREE.Mesh(new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1), mat(roofColor));
+      r.rotation.y = Math.PI / 4; r.scale.set(w * 1.08, roofH, d * 1.08);
+      r.position.set(cx, h + roofH / 2, cz); add(r);
+    } else if (roof === 'flat') {
+      const r = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, 0.6, d + 0.6), mat(roofColor));
+      r.position.set(cx, h + 0.3, cz); add(r);
     }
-    const p = P(cx, cy); g.position.set(p.x, 0, p.z); g.rotation.y = rot;
-    scene.add(g); return g;
+    return { cx, cz, w, d, h };
   };
 
-  const tree = (px, py, s = 1) => {
-    const p = P(px, py);
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * s, 0.25 * s, 1.4 * s, 5), mat(C.trunk));
-    t.position.set(p.x, 0.7 * s, p.z); add(t);
-    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25 * s, 0), mat(Math.random() > 0.5 ? C.tree : C.treeLight));
-    c.position.set(p.x, 2.2 * s, p.z); c.rotation.y = Math.random() * 3; add(c);
+  const tree = (x, z, s = 1, color) => {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * s, 0.35 * s, 2 * s, 5), mat(C.trunk));
+    t.position.set(x, s, z); add(t);
+    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s, 0), mat(color ?? [C.tree, C.treeLight, C.treeDark][Math.floor(rnd(0, 3))]));
+    c.position.set(x, 3.1 * s, z); c.rotation.y = rnd(0, 3); add(c);
+  };
+  const palmLeaf = new THREE.ConeGeometry(0.5, 3.6, 3);
+  palmLeaf.rotateZ(Math.PI / 2); palmLeaf.translate(1.8, 0, 0); palmLeaf.scale(1, 0.25, 1);
+  const palm = (x, z, s = 1) => {
+    const h = 5.5 * s;
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.3, h, 5), mat(0x8a7356));
+    t.position.set(x, h / 2, z); add(t);
+    for (let i = 0; i < 7; i++) {
+      const l = new THREE.Mesh(palmLeaf, mat(C.palm));
+      l.position.set(x, h, z); l.rotation.set(0, (i / 7) * Math.PI * 2 + rnd(0, .4), -0.35);
+      l.scale.setScalar(s); add(l);
+    }
   };
 
   const canvasTex = (w, h, draw) => {
@@ -116,184 +156,246 @@ export function initMapa3D(root, { onSelect } = {}) {
   };
 
   // ---------- terreno ----------
-  const base = new THREE.Mesh(new THREE.BoxGeometry(112, 2, 86), mat(C.ground));
-  base.position.set(0, -1, -1); add(base, { cast: false });
-  // calles perimetrales
-  flat(-10, -30, 1034, 0, C.path, 0.06);
-  flat(-10, 770, 1034, 800, C.path, 0.06);
+  // Distribución (de oeste a este): césped/cuadrángulos | Galileo | lago | Pagoda y torre | cancha sintética y tenis.
+  // Franja sur: camino de palmeras → césped pequeño → vóley → césped grande → tenis.
+  const base = new THREE.Mesh(new THREE.BoxGeometry(270, 2, 190), mat(C.ground));
+  base.position.set(22, -1, 6); add(base, { cast: false });
+  flat(-82, -58, 136, 58, C.campus, 0.06);                         // terreno del campus
+  flat(-96, -90, -84, 100, C.asphalt, 0.08);                        // avenida al oeste
+  flat(-90.3, -90, -89.7, 100, 0xf2c94c, 0.1);                      // línea amarilla
+  flat(-84, 58, 136, 65, C.asphalt, 0.08);                           // calle al sur
+  for (let x = 20; x < 28; x += 1.6) flat(x, 58, x + 0.8, 65, C.pure, 0.11); // paso cebra
 
-  // plaza de resistencia / auspiciantes
-  flat(250, 290, 560, 520, C.plaza, 0.12);
-  // parque
-  flat(470, 190, 700, 345, C.park, 0.1);
-  const pond = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.14, 20), mat(C.water, { roughness: 0.2, flatShading: false }));
-  pond.position.copy(P(610, 265)).setY(0.12); add(pond, { cast: false });
-  // zona verde del circuito
-  flat(580, 330, 880, 515, C.grass, 0.1);
+  // ---------- campus oeste ----------
+  // cuadrángulos: dos céspedes a cada lado del camino central de palmeras, que lleva recto a las gradas del Hall
+  flat(-52, -8, -16, 12, C.lawn2, 0.14);                             // césped al norte
+  flat(-56, 12, -16, 31, C.lawn, 0.14);                              // cuadrángulo norte
+  flat(-56, 35, -16, 56, C.lawn2, 0.14);                             // cuadrángulo sur
+  flat(-58, 31, -16, 35, C.path, 0.16);                              // camino central hacia el Hall
+  flat(-16, 38, 30, 56, C.lawn, 0.14);                               // césped junto al paso cebra
+  flat(-16, 31, 46, 37, C.path, 0.16);                               // camino de palmeras (continúa al este)
+  const bed = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 0.4, 10), mat(0xb3433f));
+  bed.position.set(-44, 0.3, 22); add(bed, { cast: false });
+  for (let x = -52; x <= -20; x += 6.5) { palm(x, 29.5, 0.9); palm(x + 3, 36.5, 0.9); }
+  for (let x = -12; x <= 42; x += 6) { palm(x, 29.5, 1); palm(x + 3, 38.5, 1); }
+  for (let z = -6; z <= 50; z += 7) if (z < 22 || z > 44) tree(-54, z, 0.9);  // libre frente a las gradas
+  // seto rojo a lo largo del camino
+  flat(-16, 39.5, 30, 41, 0x8e2f3a, 0.9);
 
-  // cancha de fútbol (textura con líneas)
-  const fieldTex = canvasTex(512, 440, (g, w, h) => {
-    for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#4fa84a' : '#5ab554'; g.fillRect(0, (h / 8) * i, w, h / 8); }
+  // edificio al norte del césped
+  building(-45, -26, -21, -13, 7, C.hallWall, C.hallRoof, 'hip', 4);
+  // Hall Principal: al suroeste, al final del camino recto; pórtico con arcos + gradas hacia el este (la meta)
+  building(-79, 22, -63, 44, 7, C.hallWall, C.hallRoof, 'hip', 4);
+  building(-63, 27, -60, 39, 5, C.hallWall, C.hallRoof, 'flat');
+  for (let i = 0; i < 3; i++) {
+    const arch = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.2, 2.4), mat(0x2b1d19));
+    arch.position.set(-59.85, 1.6, 29 + i * 4); scene.add(arch);
+  }
+  for (let i = 0; i < 4; i++) {                                      // gradas
+    const step = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.45, 14 + i * 1.5), mat(0xd9d2c3));
+    step.position.set(-59.4 + i * 1.1, 0.225 + (3 - i) * 0.45, 33); add(step);
+  }
+  // Espejo: techo salmón grande al noroeste
+  building(-78, -52, -48, -26, 7, C.espejoWall, C.espejoRoof, 'hip', 5);
+  building(-48, -48, -36, -30, 6, C.espejoWall, C.darkRoof, 'hip', 3);
+  // franja de edificios bajos de techo verde azulado al oeste del césped
+  building(-78, -18, -60, -2, 4, C.pink, C.teal, 'hip', 2.4);
+  building(-78, 2, -60, 18, 4, C.pink, C.teal, 'hip', 2.4);
+  // Galileo: gran techo café plano con tragaluces, entre el césped y el lago
+  const gal = building(-13, -30, 15, 27, 7, C.brick, C.darkRoof, 'flat');
+  [[-4, -18, 10, 6], [8, -20, 6, 8], [-2, 2, 12, 8], [8, 14, 6, 6], [-6, 16, 5, 5]].forEach(([x, z, w, d]) => {
+    const sky = new THREE.Mesh(new THREE.BoxGeometry(w, 0.8, d), mat(C.glassRoof, { roughness: 0.3, metalness: 0.3 }));
+    sky.position.set(x, gal.h + 0.9, z); add(sky);
+  });
+  const obs = new THREE.Mesh(new THREE.SphereGeometry(2.2, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), mat(C.white));
+  obs.position.set(10, gal.h + 0.6, 22); add(obs);                    // cúpula pequeña de Galileo
+  building(-20, -38, 4, -30, 6, C.brick, C.darkRoof, 'hip', 2.5);
+  building(-14, -32, -4, -30.2, 5, C.white, C.teal, 'flat');
+  // Einstein: blanco con cúpula dorada, al norte
+  building(-14, -56, 6, -40, 9, C.white, C.whiteRoof, 'flat');
+  const drum = new THREE.Mesh(new THREE.CylinderGeometry(3, 3.2, 2.2, 16), mat(C.white));
+  drum.position.set(-4, 10.7, -48); add(drum);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(3.1, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(C.gold, { metalness: 0.5, roughness: 0.35 }));
+  dome.position.set(-4, 11.8, -48); add(dome);
+  // Casa Blanca: techo verde, al norte del lago
+  building(14, -54, 32, -40, 5, C.white, C.teal, 'hip', 3);
+
+  // ---------- lago (dos partes con isla) ----------
+  const lakeShape = (ctrl) => {
+    const c = new THREE.CatmullRomCurve3(ctrl.map(([x, z]) => new THREE.Vector3(x, 0, z)), true);
+    return c.getPoints(48).map(p => [p.x, p.z]);
+  };
+  const grow = (pts, k) => {
+    const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cz = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+    return pts.map(([x, z]) => [x + (x - cx) * k, z + (z - cz) * k]);
+  };
+  const lakeN = lakeShape([[22, -26], [30, -28], [36, -22], [34, -12], [27, -9], [21, -15]]);
+  const lakeS = lakeShape([[22, -4], [31, -7], [40, -1], [42, 10], [38, 20], [29, 24], [21, 18], [19, 6]]);
+  [lakeN, lakeS].forEach(l => { flatShape(grow(l, 0.1), C.stone, 0.35); flatShape(l, C.water, 0.4, 0.02); });
+  const island = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3, 0.7, 10), mat(C.lawn));
+  island.position.set(26, 0.35, 8); add(island, { cast: false });
+  tree(26, 8, 0.7);
+  [[18, -30], [40, -28], [17, -8], [44, 2], [18, 26], [42, 24], [36, -34], [24, -34]].forEach(([x, z]) => tree(x, z, rnd(0.9, 1.25)));
+
+  // ---------- campus este (deportes) ----------
+  // casita de madera entre el lago y la Pagoda
+  building(41, -10, 47, 0, 2.5, 0x8a7a68, 0x6d6158, 'hip', 1.6);
+  // Pagoda: muros bajos + gran techo piramidal verde con linterna
+  building(49, -26, 69, -6, 3.5, C.pagodaWall, null, null);
+  const pr = new THREE.Mesh(new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1), mat(C.pagodaRoof));
+  pr.rotation.y = Math.PI / 4; pr.scale.set(23, 9, 23); pr.position.set(59, 3.5 + 4.5, -16); add(pr);
+  const lantern = new THREE.Mesh(new THREE.ConeGeometry(1.4, 2.4, 4), mat(C.pagodaRoof));
+  lantern.rotation.y = Math.PI / 4; lantern.position.set(59, 13.6, -16); add(lantern);
+  // torre blanca entre la Pagoda y el césped grande
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(3, 12, 3), mat(C.white)); tower.position.set(72, 6, -2); add(tower);
+  const towerTop = new THREE.Mesh(new THREE.ConeGeometry(2.3, 2, 4), mat(C.whiteRoof));
+  towerTop.rotation.y = Math.PI / 4; towerTop.position.set(72, 13, -2); add(towerTop);
+  building(64, -4, 70, 2, 3, 0xc9573f, 0x9c4a3f, 'hip', 1.5);       // casita de techo rojo junto a la torre
+
+  // césped natural detrás (al norte) y cancha sintética (fútbol)
+  flat(46, -54, 76, -30, C.grassField, 0.12);
+  const fieldTex = canvasTex(520, 512, (g, w, h) => {
+    for (let i = 0; i < 10; i++) { g.fillStyle = i % 2 ? '#3f9e45' : '#4bac4f'; g.fillRect((w / 10) * i, 0, w / 10, h); }
     g.strokeStyle = '#fff'; g.lineWidth = 5;
-    g.strokeRect(14, 14, w - 28, h - 28);
-    g.beginPath(); g.moveTo(14, h / 2); g.lineTo(w - 14, h / 2); g.stroke();
+    g.strokeRect(16, 16, w - 32, h - 32);
+    g.beginPath(); g.moveTo(w / 2, 16); g.lineTo(w / 2, h - 16); g.stroke();
     g.beginPath(); g.arc(w / 2, h / 2, 50, 0, Math.PI * 2); g.stroke();
-    g.strokeRect(w / 2 - 110, 14, 220, 70); g.strokeRect(w / 2 - 110, h - 84, 220, 70);
+    g.strokeRect(16, h / 2 - 100, 70, 200); g.strokeRect(w - 86, h / 2 - 100, 70, 200);
   });
-  flat(790, 280, 1000, 470, C.field, 0.14, fieldTex);
-  // arcos
-  [[895, 286], [895, 464]].forEach(([x, y]) => {
-    const p = P(x, y);
-    const goal = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.2, 0.5), new THREE.MeshStandardMaterial({ color: C.white, wireframe: true }));
-    goal.position.set(p.x, 0.75, p.z); scene.add(goal);
+  flat(76, -36, 104, -10, C.grassField, 0.16, fieldTex);
+  [[75.3, -23], [104.7, -23]].forEach(([x, z]) => {
+    const goal = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.4, 3.6), new THREE.MeshStandardMaterial({ color: C.pure, wireframe: true }));
+    goal.position.set(x, 0.85, z); scene.add(goal);
   });
-
-  // vóley (arena + red)
-  const sandTex = canvasTex(256, 128, (g, w, h) => {
-    g.fillStyle = '#e8d29c'; g.fillRect(0, 0, w, h);
-    g.strokeStyle = '#fff'; g.lineWidth = 4; g.strokeRect(20, 16, w - 40, h - 32);
+  // canchas de tenis (puntería): dos canchas azules sobre fondo verde
+  flat(100, -6, 126, 24, C.courtGreen, 0.14);
+  const tennisTex = canvasTex(256, 512, (g, w, h) => {
+    g.fillStyle = '#2fa3d6'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#fff'; g.lineWidth = 5;
+    g.strokeRect(20, 20, w - 40, h - 40); g.strokeRect(48, 20, w - 96, h - 40);
+    g.beginPath(); g.moveTo(48, h / 2 - 110); g.lineTo(w - 48, h / 2 - 110); g.moveTo(48, h / 2 + 110); g.lineTo(w - 48, h / 2 + 110);
+    g.moveTo(w / 2, h / 2 - 110); g.lineTo(w / 2, h / 2 + 110); g.stroke();
   });
-  flat(620, 350, 760, 415, C.sand, 0.16, sandTex);
-  const net = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1, 6), new THREE.MeshStandardMaterial({ color: C.white, wireframe: true }));
-  net.position.copy(P(690, 382)).setY(1.4); scene.add(net);
-  [-3, 3].forEach(dz => { const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.2, 6), mat(C.black)); post.position.copy(P(690, 382)).add(new THREE.Vector3(0, 1.1, dz)); add(post); });
-
-  // puntería (cancha gris + dianas)
-  const courtTex = canvasTex(256, 160, (g, w, h) => {
-    g.fillStyle = '#8f9aa0'; g.fillRect(0, 0, w, h);
-    g.strokeStyle = '#fff'; g.lineWidth = 4; g.strokeRect(14, 14, w - 28, h - 28);
-    g.beginPath(); g.moveTo(w / 2, 14); g.lineTo(w / 2, h - 14); g.stroke();
+  [102.5, 113.5].forEach(x => {
+    flat(x, -4, x + 10, 22, C.courtBlue, 0.18, tennisTex);
+    const net = new THREE.Mesh(new THREE.BoxGeometry(10.4, 1, 0.1), new THREE.MeshStandardMaterial({ color: C.pure, wireframe: true }));
+    net.position.set(x + 5, 0.7, 9); scene.add(net);
   });
-  flat(745, 400, 855, 470, C.court, 0.16, courtTex);
-  const targetTex = canvasTex(128, 128, (g) => {
+  const targetTex = canvasTex(128, 128, g => {
     ['#ed1c24', '#fff', '#ed1c24', '#fff', '#ed1c24'].forEach((c, i) => { g.fillStyle = c; g.beginPath(); g.arc(64, 64, 62 - i * 12, 0, Math.PI * 2); g.fill(); });
   });
-  [770, 795, 820].forEach(x => {
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.15, 24), [mat(C.white), new THREE.MeshStandardMaterial({ map: targetTex }), mat(C.white)]);
-    t.rotation.x = Math.PI / 2; t.position.copy(P(x, 410)).setY(1.4); add(t);
+  [105, 110, 116, 121].forEach(x => {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.15, 24), [mat(C.pure), new THREE.MeshStandardMaterial({ map: targetTex }), mat(C.pure)]);
+    t.rotation.x = Math.PI / 2; t.position.set(x, 1.4, -3); add(t);
   });
-
-  // ---------- edificios (según el plano) ----------
-  building(288, 125, 145, 90, 7, C.wall, C.roof, 2.6);
-  building(450, 110, 160, 90, 8, C.wall, C.roofGreen, 2.2);
-  const drum = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 2.4, 16), mat(C.stone));
-  drum.position.copy(P(450, 85)).setY(11.2); add(drum);
-  const dome = new THREE.Mesh(new THREE.SphereGeometry(2.7, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(C.gold, { metalness: 0.5, roughness: 0.35 }));
-  dome.position.copy(P(450, 85)).setY(12.4); add(dome);
-  const spire = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.6, 6), mat(C.gold, { metalness: 0.5, roughness: 0.35 }));
-  spire.position.copy(P(450, 85)).setY(15.8); add(spire);
-  building(560, 75, 120, 60, 7, C.wall, C.roofGreen, 1.8);
-  building(430, 225, 180, 110, 9, C.wall, C.roof, 3);
-  building(565, 175, 110, 90, 8, C.wall, C.roofGray, 2);
-  building(200, 245, 190, 95, 6, C.wallDark, C.brick, 2.4);
-  building(150, 335, 120, 70, 5, C.wall, C.brick, 2);
-  building(240, 365, 90, 55, 4, C.wall, C.brick, 1.6);
-  building(625, 110, 70, 60, 5, C.wall, C.roofGreen, 2.2);
-  // torre del reloj
-  building(65, 250, 50, 50, 15, C.stone, C.roofGray, 4);
-  // pabellón de techo verde y obelisco
-  building(775, 280, 140, 85, 4, C.stone, C.roofGreen, 6);
-  const obel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 11, 1.6), mat(C.stone));
-  obel.position.copy(P(737, 335)).setY(5.5); add(obel);
-  const obelTop = new THREE.Mesh(new THREE.ConeGeometry(1.15, 1.6, 4), mat(C.stone));
-  obelTop.position.copy(P(737, 335)).setY(11.8); obelTop.rotation.y = Math.PI / 4; add(obelTop);
-  // torres de vidrio
-  building(548, 505, 70, 75, 20, C.glass, null);
-  building(595, 470, 50, 60, 24, C.glassLight, null);
-  // edificios de ladrillo al sur
-  building(725, 565, 160, 105, 6, C.brick, C.roof, 2.6, 0.12);
-  building(610, 660, 120, 85, 5, C.brick, C.roof, 2.2);
-  building(800, 650, 70, 60, 5, C.brick, C.roof, 2);
-  building(650, 455, 70, 55, 4, C.wallDark, C.roof, 1.8);
-
-  // carpas de auspiciantes y arcos inflables en la plaza
-  const tent = (px, py, color) => {
-    const p = P(px, py);
-    const roof = new THREE.Mesh(new THREE.ConeGeometry(2.1, 1.4, 4), mat(color));
-    roof.rotation.y = Math.PI / 4; roof.position.set(p.x, 3, p.z); add(roof);
-    [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]].forEach(([dx, dz]) => {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.3, 4), mat(C.roofGray));
-      leg.position.set(p.x + dx, 1.15, p.z + dz); scene.add(leg);
-    });
-  };
-  [[405, 345, C.navy], [440, 350, C.white], [470, 385, C.white], [330, 425, C.navy], [370, 432, C.white], [445, 470, C.white]].forEach(t => tent(...t));
-  const arch = (px, py, color, rot) => {
-    const a = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.45, 8, 20, Math.PI), mat(color));
-    a.position.copy(P(px, py)).setY(0.1); a.rotation.y = rot; add(a);
-  };
-  arch(355, 352, 0x2f5fd0, 0.6);
-  arch(478, 462, C.red, -0.4);
-
+  // franja sur: césped pequeño, vóley y césped grande
+  flat(46, 4, 66, 30, C.lawn, 0.12);
+  const sandTex = canvasTex(256, 200, (g, w, h) => {
+    g.fillStyle = '#e6d3a3'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#fff'; g.lineWidth = 4; g.strokeRect(22, 18, w - 44, h - 36);
+  });
+  flat(46, 36, 62, 52, C.sand, 0.18, sandTex);
+  const vnet = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.1, 11), new THREE.MeshStandardMaterial({ color: C.pure, wireframe: true }));
+  vnet.position.set(54, 1.8, 44); scene.add(vnet);
+  [38.5, 49.5].forEach(z => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.6, 6), mat(C.black)); p.position.set(54, 1.3, z); add(p); });
+  flat(66, 8, 100, 52, C.bigField, 0.12);
+  [[70, 30], [96, 30]].forEach(([x, z]) => {                       // arcos del césped grande
+    const goal = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.6, 4), new THREE.MeshStandardMaterial({ color: C.pure, wireframe: true }));
+    goal.position.set(x, 0.9, z); scene.add(goal);
+  });
+  // caminos de la zona deportiva
+  flat(43, -6, 46, 37, C.path, 0.15);
+  flat(46, 1, 100, 4, C.path, 0.15);
+  // edificios de techo café al este y Coliseo al noreste
+  building(126, 6, 136, 46, 4, C.cream, C.brownRoof, 'hip', 3);
+  building(104, 28, 124, 40, 3.5, C.cream, C.brownRoof, 'hip', 2.5);
+  building(106, -52, 134, -18, 7, 0xd7d2c7, C.coliseoRoof, 'hip', 5);
   // árboles
-  const rnd = (a, b) => a + Math.random() * (b - a);
-  for (let x = 640; x <= 1010; x += 26) tree(x + rnd(-6, 6), 235 + rnd(-10, 10), rnd(0.9, 1.2));
-  for (let y = 260; y <= 560; y += 28) tree(1010 + rnd(-5, 5), y, rnd(0.9, 1.2));
-  for (let i = 0; i < 14; i++) tree(rnd(480, 690), rnd(200, 335), rnd(0.8, 1.15));
-  for (let x = 260; x <= 540; x += 32) tree(x, 528 + rnd(-4, 4), 0.9);
-  for (let i = 0; i < 10; i++) tree(rnd(560, 700), rnd(560, 740), rnd(0.8, 1.1));
-  for (let y = 300; y <= 500; y += 30) tree(250, y, 0.85);
+  for (let x = 46; x <= 132; x += 7) tree(x + rnd(-2, 2), -56 + rnd(-2, 2), rnd(0.9, 1.2));
+  [[74, 6], [100, 0], [62, 54], [100, 54], [40, 52], [32, 46], [68, 40], [128, -6]].forEach(([x, z]) => tree(x, z, rnd(0.9, 1.25)));
+
+  // ---------- contexto: casas alrededor ----------
+  const house = (x, z) => {
+    const w = rnd(6, 10), d = rnd(6, 9), h = rnd(3, 7);
+    building(x, z, x + w, z + d, h, C.houseWall, rnd() > 0.3 ? C.houseRoof : 0x9a9a92, rnd() > 0.25 ? 'hip' : 'flat', 2);
+  };
+  for (let z = -84; z <= 92; z += 13) house(rnd(-122, -114), z + rnd(-2, 2));
+  for (let z = -82; z <= 92; z += 15) house(rnd(-110, -102), z + rnd(-2, 2));
+  for (let x = -76; x <= 100; x += 14) house(x + rnd(-2, 2), rnd(-80, -68));
+  for (let x = -76; x <= 128; x += 13) house(x + rnd(-2, 2), rnd(70, 80));
 
   // ---------- recorrido (línea roja) ----------
-  const routePts = [[598, 345], [700, 332], [770, 330], [868, 388], [882, 440], [835, 505], [700, 508], [604, 472], [588, 400]]
-    .map(([x, y]) => P(x, y).setY(0.4));
-  const curve = new THREE.CatmullRomCurve3(routePts, true, 'catmullrom', 0.4);
-  add(new THREE.Mesh(new THREE.TubeGeometry(curve, 160, 0.38, 8, true), mat(C.red, { flatShading: false, emissive: 0x5a0306 })), { cast: false });
+  const routePts = [[80, -6], [86, -22], [96, -14], [104, -8], [108, 9], [104, 26], [88, 30], [70, 38], [56, 44], [44, 40], [28, 34], [10, 34],
+    [-8, 34], [-20, 33.5], [-33, 33], [-45, 33], [-55, 33]]
+    .map(([x, z]) => V(x, z, 0.55));
+  const curve = new THREE.CatmullRomCurve3(routePts, false, 'catmullrom', 0.35);
+  add(new THREE.Mesh(new THREE.TubeGeometry(curve, 320, 0.55, 8, false), mat(C.red, { flatShading: false, emissive: 0x5a0306 })), { cast: false });
 
   // pareja que corre por la ruta
   const runners = [C.red, C.black].map(color => {
-    const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 0.9, 4, 10), mat(color, { flatShading: false }));
+    const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.7, 1.4, 4, 10), mat(color, { flatShading: false }));
     m.castShadow = true; scene.add(m); return m;
   });
 
   // ---------- estaciones: marcadores 3D ----------
+  const PIN_H = 8.4;
   const pinGroups = STATIONS.map(st => {
     const g = new THREE.Group();
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 5, 6), mat(C.black));
-    stem.position.y = 2.5; g.add(stem);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 14), mat(C.red, { flatShading: false, emissive: 0x3a0002 }));
-    head.position.y = 5.8; head.castShadow = true; g.add(head);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.14, 8, 32), mat(C.red, { flatShading: false }));
-    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.3; g.add(ring);
-    g.position.copy(P(...st.px)); g.userData = { st, head, ring };
+    const color = st.flag ? C.black : C.red;
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 7, 6), mat(C.black));
+    stem.position.y = 3.5; g.add(stem);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(1.6, 20, 14), mat(color, { flatShading: false, emissive: st.flag ? 0x000000 : 0x3a0002 }));
+    head.position.y = PIN_H; head.castShadow = true; g.add(head);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.2, 8, 32), mat(color, { flatShading: false }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.4; g.add(ring);
+    g.position.copy(V(...st.at)); g.userData = { st, head, ring };
     scene.add(g); return g;
   });
 
   // etiquetas HTML (botones accesibles) que siguen a cada marcador
   const labels = STATIONS.map((st, i) => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'm3d-pin'; b.dataset.pin = st.id;
-    b.innerHTML = `<b>${st.id}</b><span>${st.name}</span>`;
-    b.setAttribute('aria-label', `Estación ${st.id}: ${st.name}. Ver en el mapa`);
+    b.type = 'button'; b.className = 'm3d-pin' + (st.flag ? ' m3d-pin--meta' : ''); b.dataset.pin = st.id;
+    b.innerHTML = st.flag
+      ? `<b><svg aria-hidden="true"><use href="#i-finish"/></svg></b><span>${st.name}</span>`
+      : `<b>${st.id}</b><span>${st.name}</span>`;
+    b.setAttribute('aria-label', st.flag ? `${st.name}: ${st.where}. Ver en el mapa` : `Estación ${st.id}: ${st.name}. Ver en el mapa`);
     b.addEventListener('click', () => select(st.id));
     labelsEl.appendChild(b);
     return { el: b, group: pinGroups[i] };
+  });
+  // nombres de edificios (solo decorativos)
+  const tags = TAGS.map(t => {
+    const el = document.createElement('span');
+    el.className = 'm3d-tag'; el.textContent = t.name; el.setAttribute('aria-hidden', 'true');
+    labelsEl.appendChild(el);
+    return { el, pos: V(t.at[0], t.at[2], t.at[1]) };
   });
 
   // ---------- controles ----------
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.copy(HOME.target);
   controls.enableDamping = true; controls.dampingFactor = 0.08;
-  controls.minDistance = 22; controls.maxDistance = 170;
+  controls.minDistance = 25; controls.maxDistance = 330;
   controls.maxPolarAngle = Math.PI * 0.44; controls.minPolarAngle = 0.15;
   controls.screenSpacePanning = false;
-  controls.autoRotate = false; controls.autoRotateSpeed = 0.35;
+  controls.autoRotate = false; controls.autoRotateSpeed = 0.3;
   controls.enableZoom = false; // se activa al interactuar, para no secuestrar el scroll de la página
   controls.update();
 
   // ---------- recorrido automático ----------
-  // Por defecto la cámara recorre lentamente: vista general → 1 → 2 → 3 → 4 → vista general…
+  // Por defecto la cámara recorre lentamente: vista general → 1 → 2 → 3 → 4 → meta → vista general…
   // Se detiene en cuanto el usuario interactúa (arrastrar, rueda, botones, estaciones).
-  let touring = true;
-  const TOUR = [null, '1', '2', '3', '4'];
+  let touring = true, fly = null;
+  const TOUR = [null, ...STATIONS.map(s => s.id)];
   const TRAVEL = 3800, DWELL = 3400;
   let tourIdx = 0, tourNext = 0;
   root.classList.add('m3d-touring');
   function stopTour() {
     if (!touring) return;
-    touring = false; controls.autoRotate = false;
+    touring = false; controls.autoRotate = false; fly = null;   // cancela el vuelo del recorrido en curso
     root.classList.remove('m3d-touring');
   }
-  const stopAuto = stopTour;
   controls.addEventListener('start', stopTour);
   if (!coarse) {
     // en táctil, deslizar el dedo para hacer scroll no debe cortar el recorrido
@@ -313,17 +415,16 @@ export function initMapa3D(root, { onSelect } = {}) {
 
   // limitar el paneo al campus
   const clampTarget = () => {
-    controls.target.x = THREE.MathUtils.clamp(controls.target.x, -50, 50);
-    controls.target.z = THREE.MathUtils.clamp(controls.target.z, -40, 36);
+    controls.target.x = THREE.MathUtils.clamp(controls.target.x, -80, 136);
+    controls.target.z = THREE.MathUtils.clamp(controls.target.z, -58, 62);
     controls.target.y = 0;
   };
 
   // ---------- animación de cámara ----------
-  let fly = null;
   const easeOut = t => 1 - Math.pow(1 - t, 3);
   const easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   function flyTo(pos, target, ms = 1200, { force = false, ease = easeOut } = {}) {
-    if (reduceMotion && !force) { camera.position.copy(pos); controls.target.copy(target); controls.update(); return; }
+    if (reduceMotion && !force) { fly = null; camera.position.copy(pos); controls.target.copy(target); controls.update(); return; }
     fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: target, start: performance.now(), ms, ease };
   }
 
@@ -333,12 +434,14 @@ export function initMapa3D(root, { onSelect } = {}) {
     const g = pinGroups.find(p => p.userData.st.id === id);
     const st = g.userData.st;
     const target = g.position.clone();
-    const dir = camera.position.clone().sub(controls.target).setY(0).normalize();
-    const pos = target.clone().add(dir.multiplyScalar(26)).setY(24);
+    const zoomOut = narrow ? 1.6 : 1.25;
+    const pos = target.clone().add(new THREE.Vector3(...st.view).multiplyScalar(zoomOut));
     flyTo(pos, target, ms, opts);
     labels.forEach(l => l.el.classList.toggle('active', l.el.dataset.pin === id));
     info.hidden = false;
-    info.querySelector('.m3d-num').textContent = st.id;
+    const num = info.querySelector('.m3d-num');
+    if (st.flag) num.innerHTML = '<svg aria-hidden="true" width="24" height="24"><use href="#i-finish"/></svg>';
+    else num.textContent = st.id;
     info.querySelector('.m3d-name').textContent = st.name;
     info.querySelector('.m3d-desc').textContent = st.desc;
     info.querySelector('.m3d-where').textContent = st.where;
@@ -363,23 +466,22 @@ export function initMapa3D(root, { onSelect } = {}) {
     labels.forEach(l => l.el.classList.toggle('hover', l.el.dataset.pin === id));
   }
   function zoom(f) {
-    stopAuto();
+    stopTour();
     const off = camera.position.clone().sub(controls.target).multiplyScalar(f);
     const len = THREE.MathUtils.clamp(off.length(), controls.minDistance, controls.maxDistance);
     flyTo(controls.target.clone().add(off.setLength(len)), controls.target.clone(), 450);
   }
   info.querySelector('.m3d-close').addEventListener('click', reset);
   root.querySelector('[data-m3d="reset"]').addEventListener('click', reset);
-  root.querySelector('[data-m3d="in"]').addEventListener('click', () => zoom(0.75));
-  root.querySelector('[data-m3d="out"]').addEventListener('click', () => zoom(1.3));
+  root.querySelector('[data-m3d="in"]').addEventListener('click', () => zoom(0.7));
+  root.querySelector('[data-m3d="out"]').addEventListener('click', () => zoom(1.35));
 
   // ---------- tamaño ----------
   const resize = () => {
     const w = canvasWrap.clientWidth, h = canvasWrap.clientHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    // más lejos en pantallas angostas para que entre todo el campus
-    camera.fov = w < 520 ? 52 : 40;
+    camera.fov = w < 520 ? 48 : 38;
     camera.updateProjectionMatrix();
   };
   new ResizeObserver(resize).observe(canvasWrap);
@@ -388,6 +490,11 @@ export function initMapa3D(root, { onSelect } = {}) {
   // ---------- loop (solo cuando está visible) ----------
   let visible = false, raf = 0;
   const v = new THREE.Vector3();
+  const place = (el, pos, w, h) => {
+    v.copy(pos).project(camera);
+    el.style.transform = `translate(${((v.x + 1) / 2 * w).toFixed(1)}px, ${((1 - v.y) / 2 * h).toFixed(1)}px) translate(-50%, -100%)`;
+    el.style.visibility = v.z > 1 ? 'hidden' : 'visible';
+  };
   function frame(now) {
     raf = requestAnimationFrame(frame);
     if (touring) {
@@ -402,29 +509,26 @@ export function initMapa3D(root, { onSelect } = {}) {
       if (t === 1) fly = null;
     }
     controls.update(); clampTarget();
-    // marcadores: flotan suavemente; el activo crece
     const time = now / 1000;
     pinGroups.forEach((g, i) => {
       const on = g.userData.st.id === active;
       const s = THREE.MathUtils.lerp(g.scale.x, on ? 1.35 : 1, 0.15);
       g.scale.setScalar(s);
-      g.userData.head.position.y = 5.8 + (reduceMotion ? 0 : Math.sin(time * 2 + i) * 0.25);
+      g.userData.head.position.y = PIN_H + (reduceMotion ? 0 : Math.sin(time * 2 + i) * 0.35);
       g.userData.ring.scale.setScalar(1 + (reduceMotion ? 0 : (time * 0.8 + i * 0.25) % 1 * 0.6));
     });
     runners.forEach((r, i) => {
-      const u = ((time * 0.025) + i * 0.012) % 1;
-      curve.getPointAt(u, r.position); r.position.y = 1.0 + Math.abs(Math.sin(time * 9 + i * 1.6)) * (reduceMotion ? 0 : 0.35);
-      r.position.x += i ? 0.6 : -0.6;
+      const u = ((time * 0.012) + i * 0.006) % 1;
+      curve.getPointAt(u, r.position);
+      r.position.y = 1.5 + Math.abs(Math.sin(time * 9 + i * 1.6)) * (reduceMotion ? 0 : 0.5);
+      r.position.x += i ? 0.9 : -0.9;
     });
     renderer.render(scene, camera);
     // posicionar etiquetas HTML
     const w = canvasWrap.clientWidth, h = canvasWrap.clientHeight;
-    labels.forEach(({ el, group }) => {
-      v.copy(group.position).setY(7.6 * group.scale.y).project(camera);
-      const hidden = v.z > 1;
-      el.style.transform = `translate(${((v.x + 1) / 2 * w).toFixed(1)}px, ${((1 - v.y) / 2 * h).toFixed(1)}px) translate(-50%, -100%)`;
-      el.style.visibility = hidden ? 'hidden' : 'visible';
-    });
+    labels.forEach(({ el, group }) => place(el, v.copy(group.position).setY((PIN_H + 2.2) * group.scale.y), w, h));
+    const far = camera.position.distanceTo(controls.target) > 300;
+    tags.forEach(({ el, pos }) => { place(el, pos, w, h); if (far) el.style.visibility = 'hidden'; });
   }
   const start = () => { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame); };
   const stop = () => { cancelAnimationFrame(raf); raf = 0; };

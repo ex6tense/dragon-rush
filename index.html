@@ -212,6 +212,10 @@
   .m3d-pin{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:6px;min-height:44px;padding:5px 12px 5px 5px;border-radius:99px;background:var(--black);color:var(--white);border:2px solid var(--white);font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;cursor:pointer;box-shadow:0 8px 18px -8px rgba(0,0,0,.6);transition:background .2s}
   .m3d-pin b{width:30px;height:30px;border-radius:50%;background:var(--red);display:grid;place-items:center;font-family:var(--f-display);font-weight:400;font-size:16px;letter-spacing:0}
   .m3d-pin:hover,.m3d-pin.hover,.m3d-pin.active{background:var(--red)}
+  .m3d-pin b svg{width:16px;height:16px;color:var(--white)}
+  .m3d-pin--meta b{background:var(--white)} .m3d-pin--meta b svg{color:var(--black)}
+  .m3d-num svg{color:var(--white)}
+  .m3d-tag{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;font-family:var(--f-mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--black);background:rgba(255,255,255,.82);padding:3px 8px;border-radius:99px;z-index:-1}
   .m3d-pin{padding:5px}
   .m3d-pin span{display:none}
   .m3d-pin:hover,.m3d-pin.hover,.m3d-pin.active,.m3d-pin:focus-visible{padding-right:12px;z-index:1}
@@ -656,7 +660,7 @@
         <li data-pin="2"><span class="pin" aria-hidden="true">2</span><div><b>Estación de puntería</b><span>Canchas de tenis</span></div></li>
         <li data-pin="3"><span class="pin" aria-hidden="true">3</span><div><b>Estación de vóley</b><span>Canchas de arena</span></div></li>
         <li data-pin="4"><span class="pin" aria-hidden="true">4</span><div><b>Estación de resistencia</b><span>Cuadrángulos</span></div></li>
-        <li class="finish"><span class="pin" aria-hidden="true"><svg><use href="#i-finish"/></svg></span><div><b>Meta</b><span>Gradas del Hall Principal</span></div></li>
+        <li class="finish" data-pin="meta"><span class="pin" aria-hidden="true"><svg><use href="#i-finish"/></svg></span><div><b>Meta</b><span>Gradas del Hall Principal</span></div></li>
       </ol>
     </div>
   </div>
@@ -869,7 +873,7 @@
   // dragón 3D del hero: se carga cuando la página ya terminó de cargar, para no frenar el inicio
   var heroDragon=document.querySelector('.hero-dragon');
   function loadDragon(){
-    import('./js/dragon3d.js').then(function(m){m.initDragon3D(heroDragon,document.querySelector('.hero'))}).catch(function(){});
+    import('./js/dragon3d.js?v=2').then(function(m){m.initDragon3D(heroDragon,document.querySelector('.hero'))}).catch(function(){});
   }
   function whenIdle(fn){ ('requestIdleCallback' in window) ? requestIdleCallback(fn,{timeout:1500}) : setTimeout(fn,300) }
   if(document.readyState==='complete') whenIdle(loadDragon); else window.addEventListener('load',function(){whenIdle(loadDragon)});
@@ -889,7 +893,7 @@
   var loaded=false;
   function load3d(){
     if(loaded) return; loaded=true;
-    import('./js/mapa3d.js').then(function(m){
+    import('./js/mapa3d.js?v=16').then(function(m){
       map3d=m.initMapa3D(stage,{onSelect:markStop});
     }).catch(function(){stage.classList.add('m3d-fallback')});
   }
