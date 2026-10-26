@@ -22,6 +22,7 @@ const TAGS = [
   { name: 'Einstein', at: [-4, 15.5, -48] },
   { name: 'Casa Blanca', at: [23, 9, -47] },
   { name: 'Lago', at: [31, 1.5, 14] },
+  { name: 'Stands auspiciantes', at: [-50, 6, 17] },
   { name: 'Pagoda', at: [59, 13, -16] },
   { name: 'Coliseo', at: [120, 12, -35] },
 ];
@@ -174,8 +175,24 @@ export function initMapa3D(root, { onSelect } = {}) {
   flat(-58, 31, -16, 35, C.path, 0.16);                              // camino central hacia el Hall
   flat(-16, 38, 30, 56, C.lawn, 0.14);                               // césped junto al paso cebra
   flat(-16, 31, 46, 37, C.path, 0.16);                               // camino de palmeras (continúa al este)
-  const bed = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 0.4, 10), mat(0xb3433f));
-  bed.position.set(-44, 0.3, 22); add(bed, { cast: false });
+  // stands de auspiciantes: carpas en los dos cuadrángulos, a cada lado del camino al Hall
+  const tent = (x, z, roof) => {
+    const top = new THREE.Mesh(new THREE.ConeGeometry(2.7, 1.6, 4), mat(roof));
+    top.rotation.y = Math.PI / 4; top.position.set(x, 3.6, z); add(top);
+    const valance = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.5, 3.8), mat(roof));
+    valance.position.set(x, 2.6, z); add(valance);
+    [[-1.8, -1.8], [1.8, -1.8], [-1.8, 1.8], [1.8, 1.8]].forEach(([dx, dz]) => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.6, 4), mat(0x8c9399));
+      leg.position.set(x + dx, 1.3, z + dz); scene.add(leg);
+    });
+    const table = new THREE.Mesh(new THREE.BoxGeometry(3, 0.9, 1), mat(C.pure));
+    table.position.set(x, 0.6, z + (z < 33 ? 1.2 : -1.2)); add(table);   // mesa mirando al camino
+  };
+  const tentColors = [C.red, C.pure, C.black, C.pure, C.red];
+  [-50, -43.5, -37, -30.5, -24].forEach((x, i) => {
+    tent(x, 21, tentColors[i]);                                       // cuadrángulo norte
+    tent(x, 45, tentColors[(i + 1) % 5]);                             // cuadrángulo sur
+  });
   for (let x = -52; x <= -20; x += 6.5) { palm(x, 29.5, 0.9); palm(x + 3, 36.5, 0.9); }
   for (let x = -12; x <= 42; x += 6) { palm(x, 29.5, 1); palm(x + 3, 38.5, 1); }
   for (let z = -6; z <= 50; z += 7) if (z < 22 || z > 44) tree(-54, z, 0.9);  // libre frente a las gradas
