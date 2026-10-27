@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inscripción · Dragon Rush 2026</title>
+<meta name="description" content="Inscribe a tu pareja en Dragon Rush 2026: sábado 28 de noviembre, campus USFQ, Cumbayá. $25 por pareja.">
+<meta name="theme-color" content="#ED1C24">
+<link rel="icon" type="image/png" href="../img/favicon.png">
+<link rel="apple-touch-icon" href="../img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#ED1C24; --red-deep:#9E0A10; --red-dark:#5A0306;
+    --black:#101010; --white:#FFFFFF; --gray:#EEEEED; --gray-mid:#6B6B6B; --line:#d6d6d4; --cream:#FFF4E6;
+    --ok:#1f8a4c; --err:#c4121a;
+    --f-display:"Anton", Impact, "Arial Narrow Bold", sans-serif;
+    --f-body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+    --f-script:"Permanent Marker", "Brush Script MT", cursive;
+    --gutter:20px; --radius:18px; --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--gray);color:var(--black);font-family:var(--f-body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  img,svg{display:block;max-width:100%}
+  a{color:inherit}
+  :focus-visible{outline:3px solid var(--black);outline-offset:3px;border-radius:6px}
+  .on-dark :focus-visible{outline-color:var(--white)}
+  .wrap{width:100%;max-width:880px;margin-inline:auto;padding-inline:var(--gutter)}
+  .display{font-family:var(--f-display);font-weight:400;text-transform:uppercase;line-height:.92;margin:0}
+  .eyebrow{font-family:var(--f-mono);font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:22px;height:3px;background:currentColor}
+  .script{font-family:var(--f-script);text-transform:none;font-weight:400}
+
+  /* botones */
+  .btn{--bg:var(--white);--fg:var(--black);display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 26px;border-radius:999px;background:var(--bg);color:var(--fg);font-family:var(--f-mono);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:2px solid var(--bg);cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s,background .2s,opacity .2s}
+  .btn svg{width:18px;height:18px}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px -10px rgba(0,0,0,.45)}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn--red{--bg:var(--red);--fg:var(--white)}
+  .btn--black{--bg:var(--black);--fg:var(--white)}
+  .btn--ghost{background:transparent;color:var(--black);border-color:var(--line)}
+  .btn--sm{min-height:44px;padding:10px 18px;font-size:13px}
+
+  /* cabecera */
+  .header{background:var(--black);color:var(--white);padding:12px 0;position:sticky;top:0;z-index:20}
+  .header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:1200px}
+  .header img{height:40px;width:auto}
+  .back{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--white);opacity:.9}
+  .back svg{width:16px;height:16px;transform:rotate(-135deg)}
+
+  /* cabecera roja */
+  .top{position:relative;overflow:hidden;color:var(--white);background:radial-gradient(120% 90% at 75% 0%,#ff3a40 0%,var(--red) 30%,var(--red-deep) 70%,var(--red-dark) 100%);padding:40px 0 92px}
+  .top::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(100deg,transparent 0 60px,rgba(255,255,255,.05) 60px 62px);pointer-events:none}
+  .top .wrap{position:relative;z-index:1}
+  .top h1{font-size:clamp(52px,13vw,104px);color:var(--cream)}
+  .top h1 .script{display:inline-block;font-size:.5em;color:var(--white);transform:rotate(-4deg);margin-left:.15em}
+  .facts{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0;padding:0;list-style:none}
+  .facts li{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:99px;background:rgba(0,0,0,.25);font-family:var(--f-mono);font-size:13px;font-weight:700;letter-spacing:.04em}
+  .facts svg{width:16px;height:16px}
+  .facts .price{background:var(--white);color:var(--red)}
+
+  /* tarjeta del formulario */
+  .card{position:relative;margin-top:-64px;background:var(--white);border-radius:24px;box-shadow:0 30px 60px -36px rgba(0,0,0,.35);padding:24px 18px 28px}
+  .test-banner{display:flex;gap:10px;align-items:flex-start;margin:0 0 20px;padding:12px 14px;border-radius:12px;background:#fff6d6;border:1px solid #f0d27a;font-size:14px}
+  .test-banner b{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  .cupo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 20px;padding:12px 16px;border-radius:12px;background:var(--black);color:var(--white);font-family:var(--f-mono);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .cupo b{font-family:var(--f-display);font-size:28px;font-weight:400;letter-spacing:0;color:var(--red)}
+  .cupo[hidden]{display:none}
+
+  /* pasos */
+  .steps{list-style:none;margin:0 0 8px;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .steps li{height:6px;border-radius:99px;background:var(--gray);transition:background .3s}
+  .steps li.done,.steps li.current{background:var(--red)}
+  .step-meta{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:12px 0 22px}
+  .step-meta .count{font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray-mid)}
+  .step-meta h2{font-family:var(--f-display);font-weight:400;font-size:clamp(32px,7vw,46px);line-height:1;text-transform:uppercase;margin:0}
+  .step-intro{margin:-10px 0 22px;color:#3d3d3d;font-size:16px}
+  fieldset.step{border:0;margin:0;padding:0;min-width:0}
+  fieldset.step[hidden]{display:none}
+
+  /* campos */
+  .grid{display:grid;gap:16px}
+  .field{display:grid;gap:6px}
+  .field > label,.field > .label{font-weight:700;font-size:15px}
+  .req{color:var(--red)}
+  .hint{font-size:13px;color:var(--gray-mid);margin:0}
+  input[type=text],input[type=email],input[type=tel],input[type=date],select,textarea{width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--white);font:inherit;font-size:16px;color:var(--black);transition:border-color .2s,box-shadow .2s}
+  textarea{min-height:96px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--black);box-shadow:0 0 0 4px rgba(16,16,16,.08)}
+  [aria-invalid=true]{border-color:var(--err)!important}
+  .error{color:var(--err);font-size:14px;font-weight:600;margin:0;display:flex;gap:6px;align-items:flex-start}
+  .error:empty{display:none}
+  .choices{display:flex;flex-wrap:wrap;gap:8px}
+  .choice{position:relative}
+  .choice input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .choice span{display:inline-flex;align-items:center;min-height:48px;padding:10px 18px;border-radius:99px;border:2px solid var(--line);font-weight:600;font-size:15px;transition:all .2s}
+  .choice input:checked + span{background:var(--black);border-color:var(--black);color:var(--white)}
+  .choice input:focus-visible + span{outline:3px solid var(--red);outline-offset:2px}
+  .choices[aria-invalid=true] .choice span{border-color:var(--err)}
+  .sub{border-top:1px solid var(--line);padding-top:18px;margin-top:6px}
+  .sub h3{font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:0 0 12px;color:var(--gray-mid)}
+  .reveal-field[hidden]{display:none}
+  .callout{padding:14px 16px;border-radius:12px;background:#fff1f1;border:1px solid #f4b8ba;font-size:15px}
+  .file{display:grid;gap:8px}
+  .file input{font:inherit;font-size:15px;padding:12px;border:2px dashed var(--line);border-radius:12px;background:#fafafa;width:100%}
+  .file-name{font-size:14px;color:var(--ok);font-weight:600;margin:0}
+  .file-name:empty{display:none}
+
+  /* aceptaciones */
+  .checks{display:grid;gap:12px}
+  .check{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:2px solid var(--line);cursor:pointer;transition:border-color .2s,background .2s}
+  .check input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--red)}
+  .check:has(input:checked){border-color:var(--black);background:#fafafa}
+  .check[aria-invalid=true]{border-color:var(--err)}
+  .check a{font-weight:700}
+
+  /* pago */
+  .bank{background:var(--black);color:var(--white);border-radius:18px;padding:20px 18px;display:grid;gap:14px}
+  .bank .amount{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:12px}
+  .bank .amount span{font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+  .bank .amount b{font-family:var(--f-display);font-weight:400;font-size:44px;line-height:1;color:var(--white)}
+  .bank dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:15px}
+  .bank dt{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;padding-top:3px}
+  .bank dd{margin:0;font-weight:700;word-break:break-word}
+  .copy{justify-self:start}
+  .note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--gray);font-size:15px}
+  .note svg{width:18px;height:18px;flex:none;margin-top:3px;color:var(--red)}
+
+  /* navegación */
+  .nav{display:flex;gap:10px;justify-content:space-between;margin-top:28px;flex-wrap:wrap}
+  .nav .btn{flex:1 1 auto}
+  .nav .btn--ghost[hidden]{display:none}
+  .form-error{margin-top:14px}
+
+  /* éxito / espera */
+  .done{text-align:left}
+  .done .badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:99px;background:#fff6d6;border:1px solid #f0d27a;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  .done h2{font-family:var(--f-display);font-weight:400;font-size:clamp(40px,9vw,64px);line-height:.95;text-transform:uppercase;margin:16px 0 12px}
+  .summary{margin:20px 0;padding:16px;border-radius:14px;background:var(--gray);display:grid;gap:6px;font-size:15px}
+  .summary b{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-mid);font-weight:700}
+  [hidden]{display:none!important}
+
+  .foot{padding:36px 0 48px;text-align:center;font-size:14px;color:var(--gray-mid)}
+  .foot a{font-weight:700;color:var(--black)}
+
+  @media (min-width:640px){
+    :root{--gutter:32px}
+    .card{padding:36px 40px 40px}
+    .grid.two{grid-template-columns:1fr 1fr}
+    .grid.three{grid-template-columns:1fr 1fr 1fr}
+    .field.full{grid-column:1/-1}
+    .nav .btn{flex:0 0 auto}
+    .nav .next{margin-left:auto}
+    .bank{padding:24px 26px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.01"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></symbol>
+  </defs>
+</svg>
+
+<header class="header">
+  <div class="wrap">
+    <a href="../" aria-label="Dragon Rush 2026, volver al inicio"><img src="../img/logo-white.png" alt="Dragon Rush" width="800" height="505"></a>
+    <a class="back" href="../"><svg aria-hidden="true"><use href="#i-arrow"/></svg>Volver al inicio</a>
+  </div>
+</header>
+
+<main>
+  <section class="top on-dark" aria-labelledby="titulo">
+    <div class="wrap">
+      <p class="eyebrow">Inscripción por pareja</p>
+      <h1 class="display" id="titulo">Inscribe a<br>tu pareja <span class="script">¡a correr!</span></h1>
+      <ul class="facts">
+        <li class="price">$25 por pareja</li>
+        <li><svg aria-hidden="true"><use href="#i-cal"/></svg>Sáb 28 nov 2026</li>
+        <li><svg aria-hidden="true"><use href="#i-clock"/></svg>Registro 07:30 · salida 08:30</li>
+        <li><svg aria-hidden="true"><use href="#i-pin"/></svg>Campus USFQ, Cumbayá</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="card" id="card">
+      <p class="test-banner" id="test-banner" hidden><svg aria-hidden="true" width="18" height="18"><use href="#i-info"/></svg><span><b>Modo prueba.</b> El formulario todavía no está conectado a la hoja de inscripciones: puedes recorrerlo, pero no guarda datos.</span></p>
+      <p class="cupo" id="cupo" hidden><span>Cupos disponibles</span><span><b id="cupo-n">–</b> de 40</span></p>
+
+      <!-- ============ FORMULARIO ============ -->
+      <form id="form" novalidate>
+        <ol class="steps" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li></ol>
+        <div class="step-meta">
+          <h2 id="step-title" tabindex="-1">La pareja</h2>
+          <span class="count" id="step-count">Paso 1 de 5</span>
+        </div>
+
+        <!-- Paso 1 -->
+        <fieldset class="step" data-step="1" data-title="La pareja">
+          <p class="step-intro">Una inscripción registra a la pareja completa. Después completas los datos de cada integrante.</p>
+          <div class="field">
+            <label for="equipo">Nombre del equipo <span class="req">*</span></label>
+            <input type="text" id="equipo" name="equipo" maxlength="30" autocomplete="off" required aria-describedby="equipo-hint equipo-err">
+            <p class="hint" id="equipo-hint">Máximo 30 caracteres. Aparece en la pantalla de meta y lo anuncia el DJ. <span id="equipo-len">0</span>/30</p>
+            <p class="error" id="equipo-err" aria-live="polite"></p>
+          </div>
+        </fieldset>
+
+        <!-- Pasos 2 y 3 se generan desde la plantilla -->
+        <div id="members"></div>
+
+        <!-- Paso 4 -->
+        <fieldset class="step" data-step="4" data-title="Aceptaciones" hidden>
+          <p class="step-intro">Las cuatro son obligatorias.</p>
+          <div class="checks" id="checks">
+            <label class="check" id="chk-aptitud-wrap"><input type="checkbox" name="aptitud" id="chk-aptitud"><span>Declaro que los dos integrantes estamos en condiciones físicas de realizar actividad física intensa.</span></label>
+            <label class="check" id="chk-reglamento-wrap"><input type="checkbox" name="reglamento" id="chk-reglamento"><span>Acepto el <a href="../#reglamento" target="_blank" rel="noopener">reglamento de la carrera</a> (se abre en otra pestaña).</span></label>
+            <label class="check" id="chk-imagen-wrap"><input type="checkbox" name="imagen" id="chk-imagen"><span>Autorizo el uso de mi imagen en fotos y video del evento.</span></label>
+            <label class="check" id="chk-datos-wrap"><input type="checkbox" name="datos" id="chk-datos"><span>Acepto el tratamiento de mis datos personales para la organización del evento.</span></label>
+          </div>
+          <p class="error" id="checks-err" aria-live="polite" style="margin-top:10px"></p>
+        </fieldset>
+
+        <!-- Paso 5 -->
+        <fieldset class="step" data-step="5" data-title="Pago" hidden>
+          <div class="grid">
+            <div class="bank" aria-label="Datos para la transferencia">
+              <div class="amount"><span>Monto por pareja</span><b>USD 25,00</b></div>
+              <dl id="bank-data"></dl>
+              <button type="button" class="btn btn--sm copy" id="copy-account"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copiar número de cuenta</span></button>
+            </div>
+            <div class="field">
+              <label for="comprobante">Comprobante de la transferencia <span class="req">*</span></label>
+              <div class="file">
+                <input type="file" id="comprobante" name="comprobante" accept="image/*,application/pdf" aria-describedby="comprobante-hint comprobante-err">
+                <p class="file-name" id="comprobante-name"></p>
+              </div>
+              <p class="hint" id="comprobante-hint">Foto o PDF, máximo 5 MB.</p>
+              <p class="error" id="comprobante-err" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="transaccion">Número de transacción o documento <span class="req">*</span></label>
+              <input type="text" id="transaccion" name="transaccion" autocomplete="off" aria-describedby="transaccion-err">
+              <p class="error" id="transaccion-err" aria-live="polite"></p>
+            </div>
+            <p class="note"><svg aria-hidden="true"><use href="#i-info"/></svg><span>Tu inscripción queda <b>en revisión</b> hasta que validemos la transferencia. La confirmación te llega por correo.</span></p>
+            <div class="field">
+              <label for="enteraste">¿Cómo te enteraste? <span class="hint">(opcional)</span></label>
+              <select id="enteraste" name="enteraste">
+                <option value="">Selecciona una opción</option>
+                <option>Instagram</option>
+                <option>Un amigo</option>
+                <option>Un arte en el campus</option>
+                <option>En clase</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="nav">
+          <button type="button" class="btn btn--ghost" id="prev" hidden>Atrás</button>
+          <button type="submit" class="btn btn--red next" id="next">Continuar <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+        <p class="error form-error" id="form-err" role="alert"></p>
+      </form>
+
+      <!-- ============ ÉXITO ============ -->
+      <section class="done" id="done" hidden aria-live="polite">
+        <span class="badge"><svg aria-hidden="true" width="14" height="14"><use href="#i-clock"/></svg>En revisión</span>
+        <h2 tabindex="-1" id="done-title">¡Recibimos tu inscripción!</h2>
+        <p>Estamos verificando el pago. Cuando validemos la transferencia te enviamos la confirmación al correo del integrante 1.</p>
+        <div class="summary" id="done-summary"></div>
+        <p>El día del evento lleven su <b>cédula o pasaporte</b>. Registro de 07:30 a 08:00, primera salida 08:30, campus USFQ, Cumbayá.</p>
+        <a class="btn btn--black" href="../">Volver al inicio <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </section>
+
+      <!-- ============ LISTA DE ESPERA ============ -->
+      <section id="waitlist" hidden>
+        <div class="step-meta"><h2 tabindex="-1" id="wait-title">Cupo lleno</h2></div>
+        <p class="step-intro">Ya se completaron las 40 parejas. Déjanos tu nombre y correo y te avisamos si se libera un cupo.</p>
+        <form id="wait-form" novalidate class="grid">
+          <div class="field">
+            <label for="w-nombre">Nombre <span class="req">*</span></label>
+            <input type="text" id="w-nombre" autocomplete="name" aria-describedby="w-nombre-err">
+            <p class="error" id="w-nombre-err"></p>
+          </div>
+          <div class="field">
+            <label for="w-correo">Correo <span class="req">*</span></label>
+            <input type="email" id="w-correo" autocomplete="email" aria-describedby="w-correo-err">
+            <p class="error" id="w-correo-err"></p>
+          </div>
+          <button type="submit" class="btn btn--red" id="w-submit">Anotarme en la lista de espera</button>
+          <p class="note" id="w-ok" hidden><svg aria-hidden="true"><use href="#i-check"/></svg><span>Listo, quedaste en la lista de espera.</span></p>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <p class="foot wrap">¿Dudas? Escríbenos por Instagram <a href="https://www.instagram.com/dragonrush26/" target="_blank" rel="noopener">@dragonrush26</a>.</p>
+</main>
+
+<!-- plantilla de integrante (pasos 2 y 3) -->
+<template id="member-tpl">
+  <fieldset class="step" hidden>
+    <p class="step-intro" data-intro></p>
+    <div class="grid two">
+      <div class="field full">
+        <label data-for="nombre">Nombres y apellidos completos <span class="req">*</span></label>
+        <input type="text" data-k="nombre" autocomplete="name">
+        <p class="error" data-err="nombre"></p>
+      </div>
+      <div class="field">
+        <label data-for="documento">Cédula o pasaporte <span class="req">*</span></label>
+        <input type="text" data-k="documento" autocomplete="off">
+        <p class="error" data-err="documento"></p>
+      </div>
+      <div class="field">
+        <label data-for="nacimiento">Fecha de nacimiento <span class="req">*</span></label>
+        <input type="date" data-k="nacimiento" min="1930-01-01" max="2020-12-31">
+        <p class="error" data-err="nacimiento"></p>
+      </div>
+      <div class="field full reveal-field" data-minor hidden>
+        <div class="callout">Es menor de 18 años al 28 de noviembre de 2026: necesitamos la <b>autorización firmada del representante</b>.</div>
+        <label data-for="autorizacion">Autorización del representante <span class="req">*</span></label>
+        <div class="file"><input type="file" data-k="autorizacion" accept="image/*,application/pdf"><p class="file-name" data-name="autorizacion"></p></div>
+        <p class="hint">Foto o PDF, máximo 5 MB.</p>
+        <p class="error" data-err="autorizacion"></p>
+      </div>
+      <div class="field">
+        <label data-for="correo">Correo electrónico <span class="req">*</span></label>
+        <input type="email" data-k="correo" autocomplete="email">
+        <p class="error" data-err="correo"></p>
+      </div>
+      <div class="field">
+        <label data-for="celular">Celular con WhatsApp <span class="req">*</span></label>
+        <input type="tel" data-k="celular" inputmode="numeric" autocomplete="tel" placeholder="0991234567">
+        <p class="error" data-err="celular"></p>
+      </div>
+      <div class="field full">
+        <span class="label" data-label="genero">Género <span class="req">*</span></span>
+        <div class="choices" role="radiogroup" data-group="genero">
+          <label class="choice"><input type="radio" value="Femenino"><span>Femenino</span></label>
+          <label class="choice"><input type="radio" value="Masculino"><span>Masculino</span></label>
+          <label class="choice"><input type="radio" value="Otro"><span>Otro</span></label>
+        </div>
+        <p class="error" data-err="genero"></p>
+      </div>
+      <div class="field full">
+        <span class="label" data-label="tipo">¿Dragón o Externo? <span class="req">*</span></span>
+        <div class="choices" role="radiogroup" data-group="tipo">
+          <label class="choice"><input type="radio" value="Dragón"><span>Dragón (soy de la USFQ)</span></label>
+          <label class="choice"><input type="radio" value="Externo"><span>Externo</span></label>
+        </div>
+        <p class="error" data-err="tipo"></p>
+      </div>
+      <div class="field full reveal-field" data-banner hidden>
+        <label data-for="banner">Código Banner <span class="req">*</span></label>
+        <input type="text" data-k="banner" inputmode="numeric" autocomplete="off">
+        <p class="hint">Sirve para tu ingreso al campus.</p>
+        <p class="error" data-err="banner"></p>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>Contacto de emergencia</h3>
+      <div class="grid three">
+        <div class="field">
+          <label data-for="emer_nombre">Nombre <span class="req">*</span></label>
+          <input type="text" data-k="emer_nombre">
+          <p class="error" data-err="emer_nombre"></p>
+        </div>
+        <div class="field">
+          <label data-for="emer_tel">Teléfono <span class="req">*</span></label>
+          <input type="tel" data-k="emer_tel" inputmode="numeric">
+          <p class="error" data-err="emer_tel"></p>
+        </div>
+        <div class="field">
+          <label data-for="emer_parentesco">Parentesco <span class="req">*</span></label>
+          <input type="text" data-k="emer_parentesco" placeholder="Madre, hermano, pareja…">
+          <p class="error" data-err="emer_parentesco"></p>
+        </div>
+      </div>
+    </div>
+    <div class="sub">
+      <div class="field">
+        <label data-for="medico">Condición médica, alergia o medicación relevante <span class="hint">(opcional)</span></label>
+        <textarea data-k="medico" rows="3"></textarea>
+        <p class="hint">Solo la ve el equipo de salud del evento.</p>
+      </div>
+    </div>
+  </fieldset>
+</template>
+
+<script src="../js/inscripcion.js?v=3" defer></script>
+</body>
+</html>
