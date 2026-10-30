@@ -278,8 +278,6 @@
   .timeline li.key::before{background:var(--black)}
   .timeline time{font-family:var(--f-display);font-size:46px;line-height:1;display:block}
   .timeline p{margin:4px 0 0;font-size:18px;font-weight:600}
-  .provisional{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--black);color:var(--white);padding:8px 14px;border-radius:99px;width:fit-content}
-  .provisional svg{width:16px;height:16px}
 
   /* categorías */
   .podium{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:end;margin-top:8px}
@@ -325,6 +323,8 @@
   /* auspiciantes */
   .sponsors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
   .sponsors .slot{aspect-ratio:3/2;color:var(--gray-mid);background:var(--white);opacity:1}
+  .sponsor{margin:0;aspect-ratio:3/2;border-radius:14px;overflow:hidden;background:#000;display:grid;place-items:center}
+  .sponsor img{width:100%;height:100%;object-fit:cover}
 
   /* cta final */
   .final{text-align:left;overflow:hidden;isolation:isolate}
@@ -570,7 +570,7 @@
       </article>
       <article class="info reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-clock"/></svg></span>
-        <div><h3>Horario</h3><p>Registro 07:30 · primera salida 08:30<small>Horario provisional, sujeto a confirmación</small></p></div>
+        <div><h3>Horario</h3><p>Registro 07:30 · primera salida 08:30</p></div>
       </article>
       <article class="info reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-cap"/></svg></span>
@@ -592,32 +592,31 @@
         <span class="n" aria-hidden="true">1</span>
         <span class="ic" aria-hidden="true"><svg><use href="#i-ball"/></svg></span>
         <h3>Fútbol</h3>
-        <p>Reto de precisión con balón en las canchas de fútbol.</p>
+        <p>Conducen el balón en zigzag entre conos y rematan al arco desde una línea marcada. La red está dividida en zonas y las de los costados valen más que el centro. Suman puntos entre los dos.</p>
         <span class="where"><svg aria-hidden="true"><use href="#i-pin"/></svg>Canchas de fútbol</span>
       </article>
       <article class="station reveal">
         <span class="n" aria-hidden="true">2</span>
         <span class="ic" aria-hidden="true"><svg><use href="#i-target"/></svg></span>
         <h3>Puntería</h3>
-        <p>Lanzamientos a zonas de puntaje en las canchas de tenis.</p>
+        <p>Lanzan un balón de básquet con las manos por encima de la red, para que bote dentro de unos cuadrados marcados del otro lado. Mientras más lejos el cuadrado, más vale. Cuenta dónde da el primer bote.</p>
         <span class="where"><svg aria-hidden="true"><use href="#i-pin"/></svg>Canchas de tenis</span>
       </article>
       <article class="station reveal">
         <span class="n" aria-hidden="true">3</span>
         <span class="ic" aria-hidden="true"><svg><use href="#i-volley"/></svg></span>
         <h3>Vóley</h3>
-        <p>Reto de control y continuidad en las canchas de arena.</p>
+        <p>Uno a cada lado de la red, que está baja. Se pasan el balón golpeándolo y suman cada vez que cruza. Se permiten botes en la arena y la cuenta nunca se reinicia: si se les cae, lo levantan y siguen.</p>
         <span class="where"><svg aria-hidden="true"><use href="#i-pin"/></svg>Canchas de arena</span>
       </article>
       <article class="station reveal">
         <span class="n" aria-hidden="true">4</span>
         <span class="ic" aria-hidden="true"><svg><use href="#i-bolt"/></svg></span>
         <h3>Resistencia</h3>
-        <p>Reto de fuerza y aguante en los cuadrángulos.</p>
+        <p>Tres ejercicios en orden: sentadillas, flexiones y burpees. Alternan uno a uno, así que mientras uno trabaja el otro descansa. No se puede pasar al siguiente ejercicio sin terminar el anterior.</p>
         <span class="where"><svg aria-hidden="true"><use href="#i-pin"/></svg>Cuadrángulos</span>
       </article>
     </div>
-    <p class="note reveal"><svg aria-hidden="true"><use href="#i-info"/></svg>Los retos exactos se publican una semana antes del evento.</p>
   </div>
 </section>
 
@@ -672,7 +671,6 @@
     <div class="sec-head reveal">
       <p class="eyebrow">05 · Cronograma del día</p>
       <h2 class="display h2" id="t-crono">Sábado<br>28 nov</h2>
-      <p class="provisional"><svg aria-hidden="true"><use href="#i-clock"/></svg>Horario provisional, sujeto a confirmación</p>
     </div>
     <ol class="timeline">
       <li class="reveal"><time>07:30</time><p>Apertura y registro (hasta las 08:00)</p></li>
@@ -780,9 +778,9 @@
       <p class="eyebrow red">10 · Auspiciantes</p>
       <h2 class="display h2" id="t-aus">Nos acompañan</h2>
     </div>
-    <!-- LOGOS DE AUSPICIANTES: reemplazar cada .slot por <img src="img/auspiciante.svg" alt="Nombre del auspiciante"> -->
+    <!-- LOGOS DE AUSPICIANTES: agregar cada uno como <figure class="sponsor"><img …></figure> y quitar un .slot -->
     <div class="sponsors reveal">
-      <div class="slot">Espacio disponible</div>
+      <figure class="sponsor"><img src="img/auspiciantes/elixir-gym.jpg" alt="Elixir Gym · La esencia que transforma" width="800" height="480" loading="lazy"></figure>
       <div class="slot">Espacio disponible</div>
       <div class="slot">Espacio disponible</div>
       <div class="slot">Espacio disponible</div>
@@ -818,9 +816,8 @@
         <p class="eyebrow">Contacto</p>
         <img class="footer-logo" src="img/logo-white.png" alt="Dragon Rush 2026" width="800" height="505" loading="lazy">
       </div>
-      <!-- ENLACES: falta completar el número de WhatsApp de Comercial -->
       <div class="social">
-        <a href="https://wa.me/593XXXXXXXXX" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>
+        <a href="https://wa.me/593962630891" target="_blank" rel="noopener" aria-label="WhatsApp de Dragon Rush, +593 96 263 0891"><svg aria-hidden="true"><use href="#i-wa"/></svg>+593 96 263 0891</a>
         <a href="https://www.instagram.com/dragonrush26/" target="_blank" rel="noopener" aria-label="Instagram de Dragon Rush, @dragonrush26"><svg aria-hidden="true"><use href="#i-ig"/></svg>@dragonrush26</a>
       </div>
     </div>
@@ -893,7 +890,7 @@
   var loaded=false;
   function load3d(){
     if(loaded) return; loaded=true;
-    import('./js/mapa3d.js?v=24').then(function(m){
+    import('./js/mapa3d.js?v=25').then(function(m){
       map3d=m.initMapa3D(stage,{onSelect:markStop});
     }).catch(function(){stage.classList.add('m3d-fallback')});
   }

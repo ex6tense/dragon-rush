@@ -8,10 +8,10 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // view = desde dónde mira la cámara al ir a esa estación (offset respecto al punto)
 const STATIONS = [
-  { id: '1', name: 'Fútbol', desc: 'Reto de precisión con balón.', where: 'Athletic Field', at: [-7, 89], view: [24, 32, 36] },
-  { id: '2', name: 'Puntería', desc: 'Lanzamientos a zonas de puntaje.', where: 'Canchas de tenis', at: [-36, 83.5], view: [-10, 32, 40] },
-  { id: '3', name: 'Vóley', desc: 'Reto de control y continuidad.', where: 'Cancha de vóley playa', at: [-26, 30], view: [22, 30, 34] },
-  { id: '4', name: 'Resistencia', desc: 'Reto de fuerza y aguante.', where: 'Cuadrángulos', at: [-33.75, -30], view: [0, 30, 44] },
+  { id: '1', name: 'Fútbol', desc: 'Zigzag entre conos y remate al arco: las zonas de los costados valen más.', where: 'Athletic Field', at: [-7, 89], view: [24, 32, 36] },
+  { id: '2', name: 'Puntería', desc: 'Lanzan un balón de básquet por encima de la red a cuadrados con puntaje.', where: 'Canchas de tenis', at: [-36, 83.5], view: [-10, 32, 40] },
+  { id: '3', name: 'Vóley', desc: 'Se pasan el balón sobre la red baja y suman cada cruce, sin reiniciar la cuenta.', where: 'Cancha de vóley playa', at: [-26, 30], view: [22, 30, 34] },
+  { id: '4', name: 'Resistencia', desc: 'Sentadillas, flexiones y burpees, alternando uno a uno.', where: 'Cuadrángulos', at: [-33.75, -30], view: [0, 30, 44] },
   { id: 'meta', name: 'Meta', desc: 'Suben las gradas y cruzan juntos.', where: 'Gradas del Hall Principal', at: [-33.75, -62], view: [14, 30, 46], flag: true },
 ];
 
