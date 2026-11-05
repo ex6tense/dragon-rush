@@ -323,8 +323,10 @@
   /* auspiciantes */
   .sponsors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
   .sponsors .slot{aspect-ratio:3/2;color:var(--gray-mid);background:var(--white);opacity:1}
-  .sponsor{margin:0;aspect-ratio:3/2;border-radius:14px;overflow:hidden;background:#000;display:grid;place-items:center}
-  .sponsor img{width:100%;height:100%;object-fit:cover}
+  .sponsor{position:relative;margin:0;aspect-ratio:3/2;border-radius:14px;overflow:hidden;background:#000}
+  .sponsor img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .sponsor--light{background:#fff;border:1px solid #e3e3e1}
+  .sponsor--light img{object-fit:contain;object-position:center;padding:8% 10%;box-sizing:border-box}
 
   /* cta final */
   .final{text-align:left;overflow:hidden;isolation:isolate}
@@ -781,9 +783,9 @@
     <!-- LOGOS DE AUSPICIANTES: agregar cada uno como <figure class="sponsor"><img …></figure> y quitar un .slot -->
     <div class="sponsors reveal">
       <figure class="sponsor"><img src="img/auspiciantes/elixir-gym.jpg" alt="Elixir Gym · La esencia que transforma" width="800" height="480" loading="lazy"></figure>
-      <div class="slot">Espacio disponible</div>
-      <div class="slot">Espacio disponible</div>
-      <div class="slot">Espacio disponible</div>
+      <figure class="sponsor sponsor--light"><img src="img/auspiciantes/amati.jpg" alt="Amati · The Andean Secret" width="800" height="374" loading="lazy"></figure>
+      <figure class="sponsor sponsor--light"><img src="img/auspiciantes/kinex.jpg" alt="Kinex · Rehabilitación física" width="800" height="369" loading="lazy"></figure>
+      <figure class="sponsor sponsor--light"><img src="img/auspiciantes/beer-bites.jpg" alt="Beer Bites" width="447" height="447" loading="lazy"></figure>
       <div class="slot">Espacio disponible</div>
       <div class="slot">Espacio disponible</div>
       <div class="slot">Espacio disponible</div>
