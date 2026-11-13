@@ -68,6 +68,13 @@ Después de cambiar `ADMIN` (o cualquier parte del código): **guarda**, ejecuta
 - **Lista para la mesa de registro**: pestaña *Mesa de registro* → Archivo → Imprimir.
 - La columna **Categoría** se completa a mano cuando se definan las categorías (25 de noviembre).
 
+## 6. Resultados en vivo (página /resultados)
+
+- La página de captura guarda cada dato en este mismo script y la pantalla pública lo lee desde cualquier computadora, TV o celular.
+- La primera vez, en la captura toca **Conectar a internet** y escribe una clave (mínimo 4 caracteres). La primera clave que llega queda como clave del evento: úsala en todas las compus de captura. La pantalla pública no necesita clave.
+- Para cambiar la clave: Configuración del proyecto → Propiedades del script → borra **CLAVE_RESULTADOS**, y escribe la nueva en la página.
+- Los datos quedan en la pestaña **Resultados (datos)**. No la edites a mano; para una tabla legible usa **Exportar CSV** en la página.
+
 ## Notas
 
 - **Datos sensibles**: cédulas, comprobantes y autorizaciones quedan solo en la hoja y en la carpeta de Drive de la cuenta del evento. No compartas la hoja ni la carpeta con más personas de las necesarias.

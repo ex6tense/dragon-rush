@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resultados en vivo · Dragon Rush 2026</title>
+<link rel="icon" type="image/png" href="../img/favicon.png">
+<!--
+  Resultados en vivo de Dragon Rush 2026. Funciona SIN INTERNET: no carga nada de fuera del proyecto.
+  - Captura (digitador):  resultados/index.html
+  - Pantalla pública:     resultados/index.html?vista=pantalla   (misma computadora, mismo navegador)
+  Los datos se guardan en el navegador (localStorage) y las dos vistas leen lo mismo.
+-->
+<style>
+  @font-face{font-family:"Anton";src:url("../fonts/anton.woff2") format("woff2");font-display:swap}
+  :root{
+    --red:#D90429; --black:#0E0E0D; --white:#FAFAF7; --gray:#ECECE8; --line:#d4d4cf; --mid:#6a6a66;
+    --ok:#1f8a4c; --warn:#b97400; --err:#b00020;
+    --f-display:"Anton", Impact, "Arial Narrow Bold", sans-serif;
+    --f-body:system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --f-mono:ui-monospace, Consolas, "Cascadia Mono", Menlo, monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:var(--f-body);color:var(--black);background:var(--gray)}
+  [hidden]{display:none!important}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .display{font-family:var(--f-display);font-weight:400;text-transform:uppercase;line-height:.95;margin:0}
+  .mono{font-family:var(--f-mono)}
+
+  /* ======================= CAPTURA ======================= */
+  .cap{display:grid;grid-template-rows:auto 1fr;grid-template-columns:minmax(0,1fr);height:100%}
+  .cap-top{background:var(--black);color:var(--white);display:flex;align-items:center;gap:16px;padding:10px 18px;flex-wrap:wrap}
+  .cap-top img{height:36px;width:auto}
+  .cap-top h1{font-family:var(--f-display);font-weight:400;font-size:22px;text-transform:uppercase;margin:0;letter-spacing:.02em}
+  .cap-top .sp{flex:1}
+  .cap-top .tbtn{white-space:nowrap}
+  .tbtn{min-height:40px;padding:8px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:transparent;color:var(--white);font-size:13px;font-weight:700;font-family:var(--f-mono);letter-spacing:.04em;text-transform:uppercase}
+  .tbtn:hover{background:rgba(255,255,255,.12)}
+  .tbtn.red{background:var(--red);border-color:var(--red)}
+  .tbtn.sync::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;background:#8a8a85;margin-right:8px;vertical-align:1px}
+  .tbtn.sync.ok::before{background:#2fbf71}.tbtn.sync.warn::before{background:#f5b800}.tbtn.sync.bad::before{background:#ff4d5e}
+  .tbtn.sync.warn{border-color:#f5b800}.tbtn.sync.bad{border-color:#ff4d5e}
+  .tbtn.danger{border-color:#7a2a35;color:#ffb3bd}
+  .cap-main{display:grid;grid-template-columns:330px 1fr;min-height:0}
+  .side{background:var(--white);border-right:1px solid var(--line);display:grid;grid-template-rows:auto auto 1fr;min-height:0}
+  .jump{padding:14px;border-bottom:1px solid var(--line)}
+  .jump label{display:block;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+  .jump input{width:100%;font-family:var(--f-display);font-size:44px;text-align:center;padding:6px;border:3px solid var(--black);border-radius:14px;background:var(--white)}
+  .jump p{margin:6px 0 0;font-size:12px;color:var(--mid)}
+  .counts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.04em;text-align:center}
+  .counts b{display:block;font-family:var(--f-display);font-size:24px;font-weight:400}
+  .plist{overflow:auto;margin:0;padding:6px;list-style:none}
+  .plist button{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;padding:7px 8px;border:0;border-radius:10px;background:transparent}
+  .plist button:hover{background:var(--gray)}
+  .plist button.sel{background:var(--black);color:var(--white)}
+  .plist .d{font-family:var(--f-display);font-size:22px;text-align:center}
+  .plist .n{font-size:13px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip{font-family:var(--f-mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--gray);color:var(--mid);white-space:nowrap}
+  .chip.pub{background:var(--ok);color:#fff}.chip.bor{background:#ffe9b0;color:#6b4a00}.chip.out{background:var(--black);color:#fff}
+  .plist button.sel .chip:not(.pub):not(.bor){background:#444;color:#fff}
+
+  .work{overflow:auto;padding:22px 26px 40px}
+  .empty{max-width:640px;margin:8vh auto;text-align:center}
+  .empty h2{font-family:var(--f-display);font-weight:400;font-size:44px;text-transform:uppercase;margin:0 0 10px}
+  .empty p{color:#3a3a37;font-size:16px}
+  .empty .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .btn{min-height:48px;padding:12px 22px;border-radius:99px;border:2px solid var(--black);background:var(--black);color:var(--white);font-family:var(--f-mono);font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase}
+  .btn.red{background:var(--red);border-color:var(--red)}
+  .btn.ghost{background:transparent;color:var(--black)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .card{background:var(--white);border-radius:18px;padding:22px 24px;max-width:980px;box-shadow:0 20px 40px -32px rgba(0,0,0,.4)}
+  .phead{display:flex;gap:18px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px;flex-wrap:wrap}
+  .phead .num{font-family:var(--f-display);font-size:64px;line-height:.9;background:var(--red);color:var(--white);padding:8px 16px;border-radius:14px;min-width:96px;text-align:center}
+  .phead h2{margin:0;font-size:24px;line-height:1.2}
+  .phead .meta{font-family:var(--f-mono);font-size:13px;color:var(--mid);margin-top:4px}
+  .phead .sp{flex:1}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:520px}
+  .f label{display:block;font-weight:700;font-size:14px;margin-bottom:5px}
+  .f small{display:block;color:var(--mid);font-size:12px;margin-top:4px}
+  .t{width:100%;font-family:var(--f-mono);font-size:24px;font-weight:700;padding:9px 12px;border:2px solid var(--line);border-radius:12px;background:var(--white);text-align:center}
+  .t:focus{outline:none;border-color:var(--black);box-shadow:0 0 0 4px rgba(14,14,13,.1)}
+  .t.bad{border-color:var(--err);background:#fff3f4}
+  .t.big{font-size:32px;border-color:var(--black)}
+  table.est{border-collapse:separate;border-spacing:0 8px;margin-top:18px;width:100%;max-width:760px}
+  table.est th{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);text-align:left;padding:0 8px;font-weight:700}
+  table.est td{padding:0 6px;vertical-align:middle}
+  table.est .t{font-size:22px;padding:8px 6px;min-width:96px}
+  table.est td.name{font-family:var(--f-display);font-size:21px;text-transform:uppercase;white-space:nowrap}
+  table.est td.name span{color:var(--red);margin-right:8px}
+  table.est td.w{font-family:var(--f-mono);font-size:14px;color:var(--mid);white-space:nowrap}
+  .pen{display:inline-flex;align-items:center;gap:8px;padding:9px 10px;border:2px solid var(--line);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+  .pen input{width:22px;height:22px;accent-color:var(--red);margin:0}
+  .pen:has(input:checked){border-color:var(--red);background:#fff0f2;color:var(--red)}
+  .estado{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+  .estado label{position:relative}
+  .estado input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .estado span{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border-radius:99px;border:2px solid var(--line);font-weight:700;font-size:14px}
+  .estado input:checked + span{background:var(--black);border-color:var(--black);color:var(--white)}
+  .estado input:focus-visible + span{outline:3px solid var(--red);outline-offset:2px}
+  .calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:20px;max-width:760px}
+  .calc div{background:var(--gray);border-radius:12px;padding:10px 12px}
+  .calc span{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mid)}
+  .calc b{font-family:var(--f-display);font-weight:400;font-size:30px}
+  .calc .final{background:var(--black);color:var(--white)}.calc .final span{color:#bdbdb8}
+  .msgs{margin-top:16px;display:grid;gap:8px;max-width:760px}
+  .msg{padding:10px 14px;border-radius:12px;font-size:15px;font-weight:600}
+  .msg.err{background:#ffe3e6;color:var(--err)}.msg.warn{background:#fff1cf;color:#6b4a00}.msg.ok{background:#dff3e6;color:#12592f}
+  .actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
+  .saved{font-family:var(--f-mono);font-size:12px;color:var(--mid)}
+  .help{max-width:980px;margin-top:16px;font-size:13px;color:var(--mid)}
+  kbd{font-family:var(--f-mono);background:var(--white);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:12px;color:var(--black)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--black);color:var(--white);padding:12px 20px;border-radius:99px;font-weight:700;z-index:50;box-shadow:0 12px 30px -10px rgba(0,0,0,.5)}
+  @media (max-width:900px){.cap-main{grid-template-columns:1fr;grid-template-rows:auto 1fr}.side{grid-template-rows:auto auto 220px;border-right:0;border-bottom:1px solid var(--line)}}
+
+  /* ======================= PANTALLA PÚBLICA ======================= */
+  .pub{position:fixed;inset:0;background:var(--black);color:var(--white);display:grid;grid-template-rows:auto 1fr 15vh;overflow:hidden}
+  .pub-top{display:flex;align-items:center;gap:2.2vw;padding:1.6vh 2.4vw;background:var(--red)}
+  .pub-top img{height:7vh;width:auto}
+  .pub-top h1{font-family:var(--f-display);font-weight:400;font-size:6.2vh;text-transform:uppercase;margin:0;line-height:1}
+  .pub-top .sp{flex:1}
+  .pub-stat{text-align:center;line-height:1}
+  .pub-stat b{display:block;font-family:var(--f-display);font-weight:400;font-size:5.4vh}
+  .pub-stat span{font-family:var(--f-mono);font-size:1.7vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  .pub-clock{font-family:var(--f-display);font-size:6.2vh;background:var(--black);padding:.6vh 1.4vw;border-radius:1.4vh;min-width:13vw;text-align:center}
+  .pub-main{display:grid;grid-template-columns:1fr 27vw;gap:1.6vw;padding:1.8vh 2.4vw;min-height:0}
+  .board{display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+  .board-head,.row{display:grid;grid-template-columns:9vw 9vw 1fr 15vw;align-items:center;gap:1vw}
+  .board-head{font-family:var(--f-mono);font-size:1.9vh;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a9a9a3;padding:0 1.2vw 1vh}
+  .board-head span:last-child,.row .tm{text-align:right}
+  .rows{min-height:0;overflow:hidden;display:grid;align-content:start;gap:.9vh}
+  .row{background:#1b1b19;border-radius:1.4vh;padding:0 1.2vw;height:var(--rh,8vh)}
+  .row .pos{font-family:var(--f-display);font-size:calc(var(--rh,8vh)*.62);line-height:1}
+  .row .dor{font-family:var(--f-display);font-size:calc(var(--rh,8vh)*.5);line-height:1;background:var(--white);color:var(--black);border-radius:1vh;text-align:center;padding:.5vh 0}
+  .row .nm{font-size:calc(var(--rh,8vh)*.36);font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .row .tm{font-family:var(--f-display);font-size:calc(var(--rh,8vh)*.62);line-height:1;font-variant-numeric:tabular-nums}
+  .row.p1{background:var(--red)}
+  .row.p2,.row.p3{background:#2b2b28;box-shadow:inset .6vw 0 0 var(--red)}
+  .row.run{background:#161614;box-shadow:inset 0 0 0 2px #2f2f2b}
+  .row.run .pos{font-size:calc(var(--rh,8vh)*.3);color:var(--red)}
+  .row.run .nm{display:flex;flex-direction:column;justify-content:center;gap:calc(var(--rh,8vh)*.06)}
+  .row.run .n1{font-size:calc(var(--rh,8vh)*.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row.run .prog{display:flex;align-items:center;gap:.5vw;font-family:var(--f-mono);font-weight:700;font-size:calc(var(--rh,8vh)*.19);color:#bdbdb8;text-transform:uppercase;letter-spacing:.06em}
+  .row.run .prog i{width:calc(var(--rh,8vh)*.17);height:calc(var(--rh,8vh)*.17);border-radius:50%;border:2px solid #6a6a64;flex:none}
+  .row.run .prog i.on{background:var(--white);border-color:var(--white)}
+  .row.run .prog i.pen{background:var(--red);border-color:var(--red)}
+  .row.run .prog em{font-style:normal;margin-left:.4vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row.run .tm{color:#e9e9e4}
+  .row.out{background:transparent;border:2px dashed #45453f}
+  .row.out .pos{font-size:calc(var(--rh,8vh)*.3);font-family:var(--f-mono);font-weight:700;color:#bdbdb8}
+  .row.out .tm{font-size:calc(var(--rh,8vh)*.3);font-family:var(--f-mono);font-weight:700;color:#bdbdb8;text-transform:uppercase;letter-spacing:.06em}
+  .board-foot{display:flex;justify-content:space-between;align-items:center;padding-top:1vh;font-family:var(--f-mono);font-size:1.8vh;color:#a9a9a3;letter-spacing:.08em;text-transform:uppercase;min-height:3.4vh}
+  .dots{display:flex;gap:.6vw}.dots i{width:1.2vh;height:1.2vh;border-radius:50%;background:#45453f}.dots i.on{background:var(--red)}
+  .board-empty{display:grid;place-content:center;text-align:center;height:100%}
+  .board-empty b{font-family:var(--f-display);font-weight:400;font-size:9vh;text-transform:uppercase;line-height:1}
+  .board-empty span{font-size:3vh;color:#bdbdb8;margin-top:1.4vh}
+  .lane{display:grid;grid-template-rows:auto 1fr auto auto;gap:1.2vh;min-height:0}
+  .lane h2{font-family:var(--f-display);font-weight:400;font-size:3.8vh;text-transform:uppercase;margin:0;display:flex;align-items:center;gap:.8vw}
+  .lane h2 i{width:1.6vh;height:1.6vh;border-radius:50%;background:var(--red);animation:pulse 1.4s ease-in-out infinite}
+  .lane h2 small{font-family:var(--f-mono);font-size:1.8vh;color:#a9a9a3;margin-left:auto;font-weight:700}
+  @keyframes pulse{50%{opacity:.25}}
+  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vh;align-content:start;overflow:hidden;min-height:0}
+  .dchip{font-family:var(--f-display);font-size:4.2vh;line-height:1;text-align:center;padding:1vh 0;border-radius:1.2vh;background:var(--white);color:var(--black)}
+  .dchip.wait{background:transparent;color:#8a8a84;border:2px solid #45453f}
+  .lane .none{font-size:2.2vh;color:#8a8a84}
+  .pub-foot{background:var(--white);overflow:hidden;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:1.6vw;padding:1.2vh 2.4vw;border-top:.8vh solid var(--red)}
+  .pub-foot > span{font-family:var(--f-mono);font-size:1.35vh;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--black);writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+  .logos{display:flex;align-items:center;justify-content:space-around;gap:1.6vw;height:100%;min-height:0}
+  .logos img{max-height:8.6vh;max-width:14vw;width:auto;height:auto;object-fit:contain}
+  .logos img.main{max-height:10.4vh;max-width:18vw}
+  .logos img.dark{border-radius:1vh}
+  @media (prefers-reduced-motion:reduce){.lane h2 i{animation:none}}
+</style>
+</head>
+<body>
+
+<!-- ======================= CAPTURA ======================= -->
+<div class="cap" id="cap" hidden>
+  <header class="cap-top">
+    <img src="../img/logo-white.png" alt="Dragon Rush">
+    <h1>Resultados · Captura</h1>
+    <span class="sp"></span>
+    <button class="tbtn sync" id="b-sync" type="button" title="Estado de la conexión con la pantalla pública">Conectando…</button>
+    <button class="tbtn red" id="b-pantalla" type="button">Abrir pantalla pública</button>
+    <button class="tbtn" id="b-traer" type="button">Traer inscripciones</button>
+    <button class="tbtn" id="b-import" type="button">Cargar CSV</button>
+    <button class="tbtn" id="b-export" type="button">Exportar CSV</button>
+    <button class="tbtn danger" id="b-reset" type="button">Borrar todo</button>
+    <input type="file" id="file" accept=".csv,text/csv,text/plain" hidden>
+  </header>
+  <div class="cap-main">
+    <aside class="side">
+      <div class="jump">
+        <label for="jump">Dorsal</label>
+        <input id="jump" inputmode="numeric" autocomplete="off" maxlength="3" placeholder="–">
+        <p>Escribe el número y presiona <kbd>Enter</kbd>. <kbd>Esc</kbd> vuelve aquí.</p>
+      </div>
+      <div class="counts">
+        <div><b id="c-tot">0</b>Parejas</div><div><b id="c-pub">0</b>En meta</div><div><b id="c-bor">0</b>En carrera</div><div><b id="c-out">0</b>NT / DQ</div>
+      </div>
+      <ul class="plist" id="plist"></ul>
+    </aside>
+    <main class="work" id="work"></main>
+  </div>
+</div>
+
+<!-- ======================= PANTALLA PÚBLICA ======================= -->
+<div class="pub" id="pub" hidden>
+  <header class="pub-top">
+    <img src="../img/logo-white.png" alt="Dragon Rush">
+    <h1>Resultados en vivo</h1>
+    <span class="sp"></span>
+    <div class="pub-stat"><b id="s-meta">0</b><span>En meta</span></div>
+    <div class="pub-stat"><b id="s-carrera">0</b><span>En carrera</span></div>
+    <div class="pub-clock" id="clock">--:--:--</div>
+  </header>
+  <div class="pub-main">
+    <section class="board">
+      <div class="board-head"><span>Puesto</span><span>Dorsal</span><span>Pareja</span><span>Tiempo</span></div>
+      <div class="rows" id="rows"></div>
+      <div class="board-foot"><span id="page-info"></span><span class="dots" id="dots"></span></div>
+    </section>
+    <aside class="lane">
+      <h2><i></i>En carrera <small id="n-carrera"></small></h2>
+      <div class="chips" id="chips-carrera"></div>
+      <h2 style="color:#a9a9a3">Por salir <small id="n-salir"></small></h2>
+      <div class="chips" id="chips-salir" style="max-height:22vh"></div>
+    </aside>
+  </div>
+  <footer class="pub-foot">
+    <span>Auspiciantes</span>
+    <div class="logos">
+      <img class="main" src="../img/auspiciantes/usfq-chat.jpg" alt="USFQ CHAT">
+      <img class="main" src="../img/auspiciantes/ufc-gym-ecuador.jpg" alt="UFC Gym Ecuador">
+      <img class="dark" src="../img/auspiciantes/elixir-gym.jpg" alt="Elixir Gym">
+      <img src="../img/auspiciantes/amati.jpg" alt="Amati">
+      <img src="../img/auspiciantes/kinex.jpg" alt="Kinex">
+      <img src="../img/auspiciantes/beer-bites.jpg" alt="Beer Bites">
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ============================== DATOS ============================== */
+var KEY = 'dragonrush-resultados-v1';
+var INSCRIPCIONES = 'https://script.google.com/macros/s/AKfycbzDysyJtPm8Eq5ceKDzKGWwkpnwVljiyUdQ7LNx0LFL--KDYE9KU3ifJc7Ww5lswwtG/exec';  // Apps Script de la hoja de inscripciones
+var EST = ['Fútbol', 'Puntería', 'Vóley', 'Resistencia'];
+var PEN_SEG = 60;                    // penalización por estación no completada
+var OLA1 = 8 * 3600 + 30 * 60;       // ola 1 sale 8:30
+var OLA_GAP = 180;                   // cada ola, 3 minutos después
+
+function load() {
+  try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.parejas) return d; } catch (e) {}
+  return { parejas: {}, rev: 0 };
+}
+var db = load();
+function save() {
+  var now = Date.now();
+  // cada pareja que cambió recibe la hora del cambio: así se mezclan los datos de varias compus
+  Object.keys(db.parejas).forEach(function (k) { var p = db.parejas[k], s = sinT(p); if (snap[k] !== s) { p.t = now; snap[k] = s; } });
+  db.rev = (db.rev || 0) + 1; db.guardado = now;
+  localStorage.setItem(KEY, JSON.stringify(db));
+  sync.marcar();
+}
+function nueva(d, n1, n2, ola, salida) {
+  return { d: d, n1: n1, n2: n2, ola: ola, salida: salida, salidaManual: false, llegada: '',
+    est: [0, 1, 2, 3].map(function () { return { lleg: '', emp: '', pen: false }; }),
+    estado: 'ok', publicado: false };
+}
+function lista() { return Object.keys(db.parejas).map(function (k) { return db.parejas[k]; }).sort(function (a, b) { return a.d - b.d; }); }
+
+/* ============================== EN LÍNEA (Google) ============================== */
+// La captura sube cada cambio al Apps Script; la pantalla pública lo lee desde cualquier dispositivo.
+// Si no hay internet, todo sigue funcionando en esta compu y se sube al volver.
+var CLAVE_KEY = 'dragonrush-clave';
+function sinT(p) { var o = {}; for (var k in p) if (k !== 't') o[k] = p[k]; return JSON.stringify(o); }
+var snap = {};
+function resnap() { snap = {}; Object.keys(db.parejas).forEach(function (k) { snap[k] = sinT(db.parejas[k]); }); }
+resnap();
+// mezcla la respuesta del servidor en db; true si algo cambió
+function fusionar(r) {
+  if (!r || !r.parejas) return false;
+  var cambio = false;
+  if (db.epoch && r.epoch && r.epoch !== db.epoch) { db.parejas = {}; snap = {}; cambio = true; }   // alguien usó «Borrar todo» en otra compu
+  db.epoch = r.epoch; db.srev = r.rev;
+  Object.keys(r.parejas).forEach(function (k) {
+    var p = r.parejas[k], o = db.parejas[k];
+    if (!o || (p.t || 0) > (o.t || 0)) { db.parejas[k] = p; snap[k] = sinT(p); cambio = true; }
+  });
+  return cambio;
+}
+var sync = (function () {
+  var st = { clave: '', sucio: false, enviando: false, reset: false, timer: null, estado: 'inicio', ultimo: 0, activo: false, onCambio: null, onEstado: null };
+  try { st.clave = localStorage.getItem(CLAVE_KEY) || ''; } catch (e) {}
+  function estado(e) { st.estado = e; if (st.onEstado) st.onEstado(e); }
+  function aplicar(r) {
+    var antes = db.epoch + '|' + db.srev, cambio = fusionar(r);
+    if (cambio) db.rev = (db.rev || 0) + 1;
+    if (cambio || antes !== db.epoch + '|' + db.srev) { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} }
+    if (cambio && st.onCambio) st.onCambio();
+  }
+  function subir() {
+    clearTimeout(st.timer);
+    if (!st.activo) return;
+    if (st.enviando) { st.sucio = true; return; }
+    if (!st.clave) { estado('sinclave'); return; }
+    st.enviando = true; st.sucio = false; estado('subiendo');
+    var body = { action: 'resultados', clave: st.clave, epoch: db.epoch || '', parejas: db.parejas };
+    if (st.reset) body.reset = true;
+    fetch(INSCRIPCIONES, { method: 'POST', body: JSON.stringify(body) })   // text/plain: sin preflight
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r || !r.ok) {
+          if (r && r.error === 'clave') { st.clave = ''; try { localStorage.removeItem(CLAVE_KEY); } catch (e) {} estado('clave'); }
+          else estado(r && /desconocida/.test(r.error || '') ? 'viejo' : 'error');
+          return;
+        }
+        st.reset = false; aplicar(r); st.ultimo = Date.now(); estado('ok');
+      })
+      .catch(function () { st.sucio = true; estado('offline'); })
+      .then(function () { st.enviando = false; if (st.sucio && st.clave) st.timer = setTimeout(subir, st.estado === 'offline' ? 5000 : 400); });
+  }
+  function bajar() {
+    if (st.enviando || st.sucio) return;
+    var u = INSCRIPCIONES + '?action=resultados' + (db.epoch && db.srev != null ? '&desde=' + db.srev + '&epoch=' + encodeURIComponent(db.epoch) : '');
+    fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (r) {
+      if (!r || !r.ok || r.rev == null) { estado('viejo'); return; }
+      if (st.enviando || st.sucio) return;                       // llegó un cambio local mientras tanto
+      if (!r.sinCambios) aplicar(r);
+      st.ultimo = Date.now();
+      estado(st.clave ? 'ok' : 'sinclave');
+    }).catch(function () { if (st.estado !== 'sinclave') estado('offline'); });
+  }
+  return {
+    st: st,
+    marcar: function () { if (!st.activo) return; st.sucio = true; clearTimeout(st.timer); st.timer = setTimeout(subir, 600); },
+    pedirReset: function () { db.epoch = String(Date.now()); st.reset = true; },
+    clave: function (k) { st.clave = k; try { localStorage.setItem(CLAVE_KEY, k); } catch (e) {} st.sucio = true; subir(); },
+    iniciar: function (cada) {
+      st.activo = true;
+      if (st.clave) { st.sucio = true; subir(); } else { estado('sinclave'); bajar(); }
+      setInterval(bajar, cada);
+    }
+  };
+})();
+
+/* ============================== HORAS ============================== */
+// "914" → 9:14 · "0914" → 9:14 · "91432" → 9:14:32 · "9:14" · "9.14.32". Devuelve segundos o null.
+function parseHora(v) {
+  v = String(v == null ? '' : v).trim();
+  if (!v) return null;
+  var h, m, s = 0, p = v.split(/[:.,;\s]+/).filter(Boolean);
+  if (p.length === 1 && /^\d+$/.test(v)) {
+    if (v.length === 3 || v.length === 4) { h = +v.slice(0, -2); m = +v.slice(-2); }
+    else if (v.length === 5 || v.length === 6) { h = +v.slice(0, -4); m = +v.slice(-4, -2); s = +v.slice(-2); }
+    else return null;
+  } else if ((p.length === 2 || p.length === 3) && p.every(function (x) { return /^\d{1,2}$/.test(x); })) {
+    h = +p[0]; m = +p[1]; s = p[2] ? +p[2] : 0;
+  } else return null;
+  if (h > 23 || m > 59 || s > 59) return null;
+  return h * 3600 + m * 60 + s;
+}
+function p2(n) { return (n < 10 ? '0' : '') + n; }
+function fmtHora(sec) {               // hora del día
+  if (sec == null) return '';
+  var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  return h + ':' + p2(m) + (s ? ':' + p2(s) : '');
+}
+function fmtDur(sec) {                // duración
+  if (sec == null) return '–';
+  var neg = sec < 0; sec = Math.abs(sec);
+  var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  return (neg ? '−' : '') + (h ? h + ':' + p2(m) : m) + ':' + p2(s);
+}
+function salidaDeOla(ola) { return fmtHora(OLA1 + (ola - 1) * OLA_GAP); }
+
+/* ============================== FÓRMULA ============================== */
+// tiempo final = llegada − salida + penalizaciones − espera
+function calc(p) {
+  var r = { err: [], warn: [], bad: {}, bruto: null, espera: 0, pens: 0, final: null };
+  var sal = parseHora(p.salida), lle = parseHora(p.llegada);
+  if (sal == null) { r.err.push('La hora de salida no es válida.'); r.bad.salida = 1; }
+  if (!p.llegada) { r.err.push('Falta la hora de llegada a la meta.'); r.bad.llegada = 1; }
+  else if (lle == null) { r.err.push('La hora de llegada no se entiende (ej.: 914 = 9:14).'); r.bad.llegada = 1; }
+  if (sal != null && lle != null) {
+    if (lle <= sal) { r.err.push('La llegada (' + fmtHora(lle) + ') es antes o igual que la salida (' + fmtHora(sal) + ').'); r.bad.llegada = 1; }
+    else r.bruto = lle - sal;
+  }
+  p.est.forEach(function (e, i) {
+    var a = parseHora(e.lleg), b = parseHora(e.emp), n = (i + 1) + ' ' + EST[i];
+    if (e.pen) r.pens++;
+    if (e.lleg && a == null) { r.err.push('Estación ' + n + ': la hora "llegó" no se entiende.'); r.bad['lleg' + i] = 1; }
+    if (e.emp && b == null) { r.err.push('Estación ' + n + ': la hora "empezó" no se entiende.'); r.bad['emp' + i] = 1; }
+    if (!e.lleg) { r.warn.push('Estación ' + n + ': falta la hora en que llegó.'); r.miss = 1; }
+    if (!e.emp) { r.warn.push('Estación ' + n + ': falta la hora en que empezó.'); r.miss = 1; }
+    if (a != null && b != null) {
+      if (b < a) { r.err.push('Estación ' + n + ': empezó (' + fmtHora(b) + ') antes de llegar (' + fmtHora(a) + ').'); r.bad['emp' + i] = 1; }
+      else r.espera += b - a;
+    }
+    [['lleg', a], ['emp', b]].forEach(function (x) {
+      if (x[1] == null) return;
+      if (sal != null && x[1] < sal) { r.err.push('Estación ' + n + ': hay una hora anterior a la salida.'); r.bad[x[0] + i] = 1; }
+      if (lle != null && x[1] > lle) { r.err.push('Estación ' + n + ': hay una hora posterior a la llegada a la meta.'); r.bad[x[0] + i] = 1; }
+    });
+  });
+  if (r.bruto != null) {
+    r.final = r.bruto + r.pens * PEN_SEG - r.espera;
+    if (r.final <= 0) { r.err.push('El tiempo final da cero o negativo: revisa las horas.'); r.final = null; }
+  }
+  return r;
+}
+function tieneDatos(p) { return !!(p.llegada || p.est.some(function (e) { return e.lleg || e.emp || e.pen; })); }
+
+// En vivo: cada dato cuenta apenas se escribe, no hay paso de "publicar".
+function terminada(p) { if (p.estado !== 'ok') return null; var c = calc(p); return c.final != null && !c.err.length ? c.final : null; }
+// Avance en el circuito según lo que ya se digitó de cada estación
+function progreso(p) {
+  var n = 0, label = 'En el circuito';
+  p.est.forEach(function (e, i) {
+    if (!(e.lleg || e.emp || e.pen)) return;
+    n++;
+    label = e.pen ? 'Pasó ' + EST[i] : (e.emp ? 'En ' + EST[i] : 'Esperando en ' + EST[i]);
+  });
+  return { n: n, label: label };
+}
+// Clasificación: en meta con tiempo, de menor a mayor. Empates comparten puesto.
+function clasificacion() {
+  var fin = [], out = [], carrera = [], salir = [], ahora = new Date();
+  var now = ahora.getHours() * 3600 + ahora.getMinutes() * 60 + ahora.getSeconds();
+  lista().forEach(function (p) {
+    if (p.estado !== 'ok') { out.push(p); return; }
+    var t = terminada(p);
+    if (t != null) { fin.push({ p: p, t: t }); return; }
+    var s = parseHora(p.salida);
+    (s != null && (now >= s || tieneDatos(p)) ? carrera : salir).push(p);
+  });
+  carrera.sort(function (a, b) { return progreso(b).n - progreso(a).n || (parseHora(a.salida) || 0) - (parseHora(b.salida) || 0) || a.d - b.d; });
+  fin.sort(function (a, b) { return a.t - b.t || a.p.d - b.p.d; });
+  fin.forEach(function (x, i) { x.pos = i && fin[i - 1].t === x.t ? fin[i - 1].pos : i + 1; });
+  return { fin: fin, out: out, carrera: carrera, salir: salir };
+}
+
+/* ============================== CSV ============================== */
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  var first = text.split(/\r?\n/)[0] || '';
+  var sep = (first.split(';').length > first.split(',').length) ? ';' : (first.indexOf('\t') > -1 && first.split('\t').length > first.split(',').length ? '\t' : ',');
+  var rows = [], row = [], cur = '', q = false;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === sep) { row.push(cur); cur = ''; }
+    else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (ch !== '\r') cur += ch;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  return rows.map(function (r) { return r.map(function (c) { return c.trim(); }); }).filter(function (r) { return r.some(Boolean); });
+}
+// columnas: dorsal, integrante 1, integrante 2, ola, hora de salida (opcional)
+function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+// CSV descargado de la pestaña "Inscripciones" de la hoja de Google: lo convierte a
+// dorsal, integrante 1, integrante 2, ola, salida. Solo entran las parejas con pago "Validado".
+// Si la hoja tiene columnas "Dorsal" u "Ola", se respetan; si no, el dorsal va en el orden de la hoja
+// y salen 2 parejas por ola.
+function desdeInscripciones(rows) {
+  var h = rows[0].map(norm), col = function (name) { return h.indexOf(name); };
+  var c1 = col('i1 nombre'), c2 = col('i2 nombre');
+  if (c1 < 0 || c2 < 0) return null;
+  var ce = col('estado del pago'), cd = col('dorsal'), co = col('ola'), cs = h.indexOf('hora de salida') > -1 ? h.indexOf('hora de salida') : col('salida');
+  var out = [], fuera = 0, usados = {}, sig = 1;
+  var filas = rows.slice(1).filter(function (r) {
+    if (!r[c1] && !r[c2]) return false;
+    if (ce > -1 && norm(r[ce]) !== 'validado') { fuera++; return false; }
+    return true;
+  });
+  filas.forEach(function (r) { var d = cd > -1 ? parseInt(r[cd], 10) : NaN; if (!isNaN(d)) usados[d] = 1; });
+  filas.forEach(function (r) {
+    var d = cd > -1 ? parseInt(r[cd], 10) : NaN;
+    if (isNaN(d)) { while (usados[sig]) sig++; d = sig; usados[d] = 1; }
+    var ola = co > -1 ? parseInt(r[co], 10) : NaN;
+    if (isNaN(ola)) ola = Math.ceil(d / 2);
+    out.push([String(d), r[c1], r[c2], String(ola), cs > -1 ? r[cs] : '']);
+  });
+  return { rows: out, fuera: fuera };
+}
+function importar(text, filas) {
+  var rows = filas || parseCSV(text), n = 0, errs = [];
+  var ins = rows.length ? desdeInscripciones(rows) : null;
+  if (ins) {
+    rows = ins.rows;
+    if (!filas) errs.push('Leí el archivo de la hoja de inscripciones: entraron solo las parejas con pago Validado' + (ins.fuera ? ' (' + ins.fuera + ' sin validar quedaron fuera)' : '') + '. Revisa en la lista que el dorsal y la ola de cada pareja sean los correctos.');
+  }
+  rows.forEach(function (r, i) {
+    var d = parseInt(r[0], 10);
+    if (isNaN(d)) { if (i > 0 || ins) errs.push('Fila ' + (i + 1) + ': el dorsal "' + (r[0] || '') + '" no es un número.'); return; }  // fila 1 = encabezado
+    var ola = parseInt(r[3], 10);
+    if (isNaN(ola) || ola < 1) { errs.push('Fila ' + (i + 1) + ' (dorsal ' + d + '): falta el número de ola.'); return; }
+    var hs = r[4] ? parseHora(r[4]) : null;
+    if (r[4] && hs == null) errs.push('Fila ' + (i + 1) + ' (dorsal ' + d + '): no entendí la hora "' + r[4] + '", usé la de la ola.');
+    var salida = hs != null ? fmtHora(hs) : salidaDeOla(ola);
+    var p = db.parejas[d];
+    if (p) { p.n1 = r[1] || p.n1; p.n2 = r[2] || p.n2; p.ola = ola; if (!p.salidaManual) p.salida = salida; }
+    else db.parejas[d] = nueva(d, r[1] || '', r[2] || '', ola, salida);
+    n++;
+  });
+  if (n) save();
+  return { n: n, errs: errs };
+}
+function csvCell(v) { v = String(v == null ? '' : v); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function exportar() {
+  var cl = clasificacion(), pos = {};
+  cl.fin.forEach(function (x) { pos[x.p.d] = x.pos; });
+  var head = ['Puesto', 'Dorsal', 'Integrante 1', 'Integrante 2', 'Ola', 'Estado', 'Publicado', 'Salida', 'Llegada'];
+  EST.forEach(function (e, i) { head.push('E' + (i + 1) + ' ' + e + ' llegó', 'E' + (i + 1) + ' empezó', 'E' + (i + 1) + ' espera', 'E' + (i + 1) + ' penalización'); });
+  head.push('Tiempo bruto', 'Espera total', 'Penalizaciones', 'Penalización total', 'Tiempo final', 'Tiempo final (segundos)');
+  var orden = lista().sort(function (a, b) { return (pos[a.d] || 999) - (pos[b.d] || 999) || a.d - b.d; });
+  var lines = [head].concat(orden.map(function (p) {
+    var c = calc(p), ok = p.estado === 'ok';
+    var estado = p.estado === 'dnf' ? 'No terminó' : p.estado === 'dsq' ? 'Descalificada' : (c.final != null && !c.err.length ? 'Terminó' : 'Sin resultado');
+    var row = [pos[p.d] || '', p.d, p.n1, p.n2, p.ola, estado, tieneDatos(p) || p.estado !== 'ok' ? 'Sí' : 'No', p.salida, p.llegada];
+    p.est.forEach(function (e) {
+      var a = parseHora(e.lleg), b = parseHora(e.emp);
+      row.push(e.lleg, e.emp, a != null && b != null && b >= a ? fmtDur(b - a) : '', e.pen ? 'Sí' : 'No');
+    });
+    row.push(ok && c.bruto != null ? fmtDur(c.bruto) : '', fmtDur(c.espera), c.pens, fmtDur(c.pens * PEN_SEG),
+      ok && c.final != null && !c.err.length ? fmtDur(c.final) : '', ok && c.final != null && !c.err.length ? c.final : '');
+    return row;
+  }));
+  var csv = '﻿' + lines.map(function (r) { return r.map(csvCell).join(';'); }).join('\r\n');
+  var a = document.createElement('a'), now = new Date();
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'dragon-rush-resultados-' + p2(now.getHours()) + p2(now.getMinutes()) + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function $(id) { return document.getElementById(id); }
+
+var vista = /[?&]vista=pantalla/.test(location.search) ? 'pantalla' : 'captura';
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+
+/* ============================== CAPTURA ============================== */
+if (vista === 'captura') (function () {
+  $('cap').hidden = false;
+  var sel = null, confirmar = false, toastT = 0;
+
+  function toast(t) {
+    var el = document.querySelector('.toast'); if (el) el.remove();
+    el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t;
+    document.body.appendChild(el); clearTimeout(toastT); toastT = setTimeout(function () { el.remove(); }, 2600);
+  }
+  function chip(p) {
+    if (p.estado === 'dnf') return '<span class="chip out">No terminó</span>';
+    if (p.estado === 'dsq') return '<span class="chip out">Descalif.</span>';
+    if (terminada(p) != null) return '<span class="chip pub">En meta</span>';
+    if (tieneDatos(p)) return '<span class="chip bor">En carrera</span>';
+    return '<span class="chip">Pendiente</span>';
+  }
+  function renderLista() {
+    var l = lista(), pub = 0, bor = 0, out = 0;
+    $('plist').innerHTML = l.map(function (p) {
+      if (p.estado !== 'ok') out++; else if (terminada(p) != null) pub++; else if (tieneDatos(p)) bor++;
+      return '<li><button type="button" data-d="' + p.d + '"' + (sel === p.d ? ' class="sel"' : '') + '><span class="d">' + p.d + '</span><span class="n">' + esc(p.n1) + '<br>' + esc(p.n2) + '</span>' + chip(p) + '</button></li>';
+    }).join('');
+    $('c-tot').textContent = l.length; $('c-pub').textContent = pub; $('c-bor').textContent = bor; $('c-out').textContent = out;
+  }
+  function tfield(id, val, cls, label) {
+    return '<input class="t ' + (cls || '') + '" id="' + id + '" value="' + esc(val) + '" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="' + esc(label) + '">';
+  }
+  function renderVacio() {
+    var hay = lista().length;
+    $('work').innerHTML = hay
+      ? '<div class="empty"><h2>Escribe un dorsal</h2><p>Escribe el número de dorsal a la izquierda y presiona <kbd>Enter</kbd> para cargar esa pareja.</p></div>'
+      : '<div class="empty"><h2>Carga las parejas</h2><p>Sube el CSV con las columnas <b>dorsal, integrante 1, integrante 2, ola, hora de salida</b>, o trae las parejas con pago validado directo de la hoja de inscripciones. Si la hora de salida viene vacía, se calcula con la ola (ola 1 = 8:30, cada ola 3 minutos después).</p>' +
+        '<div class="acts"><button class="btn red" type="button" id="e-traer">Traer inscripciones</button><button class="btn ghost" type="button" id="e-import">Cargar CSV</button><button class="btn ghost" type="button" id="e-demo">Cargar 40 parejas de prueba</button></div>' +
+        '<p style="margin-top:18px;font-size:13px;color:var(--mid)">Las parejas de prueba sirven para ensayar. Antes del evento usa «Borrar todo» y carga el CSV real.</p></div>';
+  }
+  function renderPareja() {
+    var p = db.parejas[sel]; if (!p) { renderVacio(); return; }
+    var h = '<form class="card" id="pf" novalidate autocomplete="off">' +
+      '<div class="phead"><div class="num">' + p.d + '</div><div><h2>' + esc(p.n1) + '<br>' + esc(p.n2) + '</h2><div class="meta">Ola ' + p.ola + ' · salida programada ' + salidaDeOla(p.ola) + '</div></div><span class="sp"></span><div id="badge"></div></div>' +
+      '<div class="grid2">' +
+        '<div class="f"><label for="llegada">Hora de llegada a la meta</label>' + tfield('llegada', p.llegada, 'big', 'Hora de llegada a la meta') + '<small>Ej.: <b>914</b> = 9:14 · <b>91432</b> = 9:14:32</small></div>' +
+        '<div class="f"><label for="salida">Hora de salida real</label><input class="t" id="salida" value="' + esc(p.salida) + '" inputmode="numeric" autocomplete="off" maxlength="8" tabindex="-1"><small>Cámbiala solo si salió en otra ola.</small></div>' +
+      '</div>' +
+      '<table class="est"><thead><tr><th>Estación</th><th>Llegó</th><th>Empezó</th><th>Espera</th><th>No completó</th></tr></thead><tbody>' +
+      EST.map(function (n, i) {
+        var e = p.est[i];
+        return '<tr><td class="name"><span>' + (i + 1) + '</span>' + n + '</td><td>' + tfield('lleg' + i, e.lleg, '', n + ': hora en que llegó') + '</td><td>' + tfield('emp' + i, e.emp, '', n + ': hora en que empezó') + '</td><td class="w" id="w' + i + '">–</td>' +
+          '<td><label class="pen"><input type="checkbox" id="pen' + i + '"' + (e.pen ? ' checked' : '') + '>+1:00</label></td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<div class="estado" role="radiogroup" aria-label="Estado de la pareja">' +
+        [['ok', 'Terminó la carrera'], ['dnf', 'No terminó'], ['dsq', 'Descalificada']].map(function (o) {
+          return '<label><input type="radio" name="estado" value="' + o[0] + '"' + (p.estado === o[0] ? ' checked' : '') + '><span>' + o[1] + '</span></label>';
+        }).join('') + '</div>' +
+      '<div class="calc"><div><span>Llegada − salida</span><b id="k-bruto">–</b></div><div><span>+ Penalización</span><b id="k-pen">–</b></div><div><span>− Espera</span><b id="k-esp">–</b></div><div class="final"><span>Tiempo final</span><b id="k-fin">–</b></div></div>' +
+      '<div class="msgs" id="msgs" aria-live="polite"></div>' +
+      '<div class="actions"><button class="btn red" type="submit" id="pubbtn">Listo · siguiente dorsal</button><button class="btn ghost" type="button" id="unpub" hidden tabindex="-1">Retirar de la pantalla</button><span class="saved" id="saved"></span></div>' +
+      '</form><p class="help"><kbd>Tab</kbd> pasa al siguiente campo · <kbd>Espacio</kbd> marca la penalización · <kbd>Enter</kbd> pasa a la siguiente pareja · <kbd>Esc</kbd> vuelve al dorsal. Cada dato sale en la pantalla pública apenas pasas de campo, sin esperar a que la pareja termine.</p>';
+    $('work').innerHTML = h;
+    confirmar = false;
+    refrescar(false);
+  }
+  // recalcula y pinta; mostrar = si se muestran los errores de validación
+  function refrescar(mostrar) {
+    var p = db.parejas[sel]; if (!p || !$('pf')) return;
+    var c = calc(p), ok = p.estado === 'ok';
+    ['salida', 'llegada'].concat([0, 1, 2, 3].map(function (i) { return 'lleg' + i; }), [0, 1, 2, 3].map(function (i) { return 'emp' + i; })).forEach(function (id) {
+      var el = $(id), raw = el.value.trim();
+      el.classList.toggle('bad', !!(raw && parseHora(raw) == null) || !!(mostrar && ok && c.bad[id]));
+    });
+    p.est.forEach(function (e, i) {
+      var a = parseHora(e.lleg), b = parseHora(e.emp);
+      $('w' + i).textContent = a != null && b != null && b >= a ? fmtDur(b - a) : '–';
+    });
+    $('k-bruto').textContent = ok ? fmtDur(c.bruto) : '–';
+    $('k-pen').textContent = ok ? '+' + fmtDur(c.pens * PEN_SEG) : '–';
+    $('k-esp').textContent = ok ? '−' + fmtDur(c.espera) : '–';
+    $('k-fin').textContent = ok ? fmtDur(c.final) : (p.estado === 'dnf' ? 'NT' : 'DQ');
+    $('badge').innerHTML = chip(p);
+    $('unpub').hidden = true;
+    var m = [];
+    if (mostrar && ok) {
+      c.err.forEach(function (t) { m.push('<div class="msg err">' + esc(t) + '</div>'); });
+      if (!c.err.length && c.warn.length) m.push('<div class="msg warn"><b>Faltan datos:</b><br>' + c.warn.map(esc).join('<br>') + '<br><br>Si no los tienes, presiona <b>Enter</b> otra vez: la espera de esa estación cuenta 0.</div>');
+    }
+    if (!m.length && (tieneDatos(p) || !ok)) m.push('<div class="msg ok">' + (!ok ? 'La pantalla pública ya muestra a esta pareja como ' + (p.estado === 'dnf' ? 'no terminó' : 'descalificada') + '.' : terminada(p) != null ? 'En la pantalla pública: en meta con ' + fmtDur(terminada(p)) + '. Si corriges un dato, se actualiza solo.' : 'En la pantalla pública: en carrera · ' + esc(progreso(p).label) + '.') + '</div>');
+    $('msgs').innerHTML = m.join('');
+    var g = new Date(db.guardado || Date.now());
+    $('saved').textContent = 'Guardado ' + p2(g.getHours()) + ':' + p2(g.getMinutes()) + ':' + p2(g.getSeconds());
+    renderLista();
+  }
+  function abrir(d, foco) {
+    if (!db.parejas[d]) { toast('No existe el dorsal ' + d); $('jump').select(); return; }
+    sel = d; $('jump').value = d; renderPareja(); renderLista();
+    var b = document.querySelector('.plist button.sel'); if (b) b.scrollIntoView({ block: 'nearest' });
+    if (foco !== false) { $('llegada').focus(); $('llegada').select(); }
+  }
+  function alDorsal() { $('jump').focus(); $('jump').select(); }
+
+  // escribir en un campo: guarda solo
+  function asignar(p, t) {
+    var s = parseHora(t.value); if (s != null) t.value = fmtHora(s);     // 914 → 9:14
+    var v = t.value.trim(), antes;
+    if (t.id === 'llegada') { antes = p.llegada; p.llegada = v; }
+    else if (t.id === 'salida') { antes = p.salida; p.salida = v; if (antes !== v) p.salidaManual = true; }
+    else if (/^lleg\d$/.test(t.id)) { antes = p.est[+t.id.slice(4)].lleg; p.est[+t.id.slice(4)].lleg = v; }
+    else if (/^emp\d$/.test(t.id)) { antes = p.est[+t.id.slice(3)].emp; p.est[+t.id.slice(3)].emp = v; }
+    else return false;
+    return antes !== v;
+  }
+  $('work').addEventListener('input', function () { confirmar = false; });
+  $('work').addEventListener('change', function (e) {
+    var p = db.parejas[sel], t = e.target; if (!p) return;
+    confirmar = false;
+    if (/^pen\d$/.test(t.id)) p.est[+t.id.slice(3)].pen = t.checked;
+    else if (t.name === 'estado') p.estado = t.value;
+    else if (t.classList.contains('t')) { if (!asignar(p, t)) { refrescar(false); return; } }   // al salir del campo
+    else return;
+    save(); refrescar(false);
+  });
+  $('work').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var p = db.parejas[sel]; if (!p) return;
+    var cambio = false;
+    document.querySelectorAll('#pf .t').forEach(function (t) { if (asignar(p, t)) cambio = true; });
+    if (cambio) save();
+    if (p.estado === 'ok') {
+      var c = calc(p);
+      if (!p.llegada) {          // sigue en carrera: solo frenan los errores de las estaciones
+        c.err = c.err.filter(function (t) { return t.indexOf('Falta la hora de llegada') !== 0; });
+        c.warn = [];
+      }
+      if (c.err.length) {
+        refrescar(true);
+        var bad = document.querySelector('#pf .t.bad'); if (bad) { bad.focus(); bad.select(); }
+        return;
+      }
+      if (c.warn.length && !confirmar) { confirmar = true; refrescar(true); $('pubbtn').focus(); return; }
+    }
+    renderLista();
+    var tf = terminada(p);
+    toast(p.estado !== 'ok' ? 'Dorsal ' + p.d + ' · ' + (p.estado === 'dnf' ? 'no terminó' : 'descalificada') : tf != null ? 'Dorsal ' + p.d + ' en meta · ' + fmtDur(tf) : 'Dorsal ' + p.d + ' · ' + progreso(p).label);
+    refrescar(false); alDorsal();
+  });
+  $('work').addEventListener('click', function (e) {
+    var id = e.target.id;
+    if (id === 'unpub') { db.parejas[sel].publicado = false; save(); refrescar(false); toast('Retirado de la pantalla pública'); }
+    if (id === 'e-import') $('file').click();
+    if (id === 'e-traer') traer();
+    if (id === 'e-demo') { demo(); }
+  });
+  $('plist').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) abrir(+b.dataset.d); });
+  $('jump').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey && this.value.trim())) {
+      e.preventDefault(); var d = parseInt(this.value, 10); if (!isNaN(d)) abrir(d);
+    }
+  });
+  $('jump').addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); alDorsal(); } });
+
+  $('b-pantalla').addEventListener('click', function () { window.open(location.pathname + '?vista=pantalla', 'dragonrush-pantalla'); });
+  $('b-import').addEventListener('click', function () { $('file').click(); });
+  // Trae las parejas validadas directo de la hoja de inscripciones (Apps Script)
+  function traer() {
+    var bs = [$('b-traer'), $('e-traer')].filter(Boolean);
+    bs.forEach(function (b) { b.disabled = true; b.textContent = 'Trayendo…'; });
+    fetch(INSCRIPCIONES + '?action=parejas', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.filas) throw new Error('viejo');
+      var antes = lista().length, r = importar('', j.filas), nuevas = lista().length - antes;
+      renderLista(); if (sel && db.parejas[sel]) renderPareja(); else renderVacio();
+      alert((r.n ? 'Hoja de inscripciones: ' + r.n + ' parejas con pago validado' + (nuevas ? ' (' + nuevas + ' nuevas)' : ' (ninguna nueva)') + '.' : 'Todavía no hay parejas con pago validado en la hoja.') +
+        (j.fuera ? '\n' + j.fuera + ' sin validar quedaron fuera.' : '') + (r.errs.length ? '\n\nAvisos:\n- ' + r.errs.join('\n- ') : ''));
+      alDorsal();
+    }).catch(function (e) {
+      alert(e && e.message === 'viejo'
+        ? 'El script de Google todavía no tiene la función de parejas. Pega el Code.gs nuevo y publica una versión nueva de la implementación.'
+        : 'No pude conectar con la hoja de inscripciones. Revisa el internet y vuelve a intentar.');
+    }).then(function () { bs.forEach(function (b) { if (b.isConnected) { b.disabled = false; b.textContent = 'Traer inscripciones'; } }); });
+  }
+  $('b-traer').addEventListener('click', traer);
+  $('b-export').addEventListener('click', function () { if (!lista().length) { toast('Todavía no hay parejas cargadas'); return; } exportar(); });
+  $('file').addEventListener('change', function () {
+    var f = this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var r = importar(String(rd.result));
+      renderLista(); if (sel && db.parejas[sel]) renderPareja(); else renderVacio();
+      alert((r.n ? 'Se cargaron ' + r.n + ' parejas.' : 'No se cargó ninguna pareja. Revisa que el archivo tenga las columnas: dorsal, integrante 1, integrante 2, ola, hora de salida.') + (r.errs.length ? '\n\nAvisos:\n- ' + r.errs.join('\n- ') : ''));
+      alDorsal();
+    };
+    rd.readAsText(f, 'utf-8'); this.value = '';
+  });
+  $('b-reset').addEventListener('click', function () {
+    if (!lista().length) return;
+    var t = prompt('Esto borra TODAS las parejas y resultados, aquí y en la pantalla pública.\nAntes exporta el CSV si quieres guardar algo.\n\nEscribe BORRAR para confirmar:');
+    if (t && t.trim().toUpperCase() === 'BORRAR') { db = { parejas: {}, rev: db.rev }; snap = {}; sync.pedirReset(); sel = null; save(); renderLista(); renderVacio(); $('jump').value = ''; toast('Datos borrados'); }
+  });
+  function demo() {
+    for (var d = 1; d <= 40; d++) { var ola = Math.ceil(d / 2); db.parejas[d] = nueva(d, 'Prueba ' + d + ' A', 'Prueba ' + d + ' B', ola, salidaDeOla(ola)); }
+    save(); renderLista(); renderVacio(); alDorsal(); toast('40 parejas de prueba cargadas');
+  }
+  // otra pestaña de captura cambió algo
+  window.addEventListener('storage', function (e) { if (e.key === KEY) { db = load(); resnap(); renderLista(); if (sel && db.parejas[sel] && document.activeElement && !document.activeElement.classList.contains('t')) renderPareja(); } });
+
+  // en línea: estado, clave y cambios que llegan de otra compu de captura
+  function pintarSync(e) {
+    var b = $('b-sync'), g = new Date(sync.st.ultimo || Date.now());
+    var m = {
+      inicio: ['Conectando…', ''], subiendo: ['Guardando en línea…', 'ok'],
+      ok: ['En línea · ' + p2(g.getHours()) + ':' + p2(g.getMinutes()) + ':' + p2(g.getSeconds()), 'ok'],
+      sinclave: ['Conectar a internet', 'warn'], clave: ['Clave incorrecta', 'bad'],
+      offline: ['Sin conexión · se sube al volver', 'bad'], viejo: ['Script desactualizado', 'bad'], error: ['Error al guardar en línea', 'bad']
+    }[e] || ['', ''];
+    b.textContent = m[0]; b.className = 'tbtn sync ' + m[1];
+  }
+  function pedirClave() {
+    var k = prompt('Clave de captura\n\nEs la misma en todas las compus de captura. La primera vez que se escribe queda como la clave del evento.\nLa pantalla pública no la necesita.', '');
+    if (k == null) return;
+    k = k.trim();
+    if (k.length < 4) { alert('La clave debe tener al menos 4 caracteres.'); return; }
+    sync.clave(k);
+  }
+  $('b-sync').addEventListener('click', function () { if (!sync.st.clave || sync.st.estado === 'clave') pedirClave(); else { sync.st.sucio = true; sync.marcar(); } });
+  sync.st.onEstado = pintarSync;
+  sync.st.onCambio = function () {
+    renderLista();
+    var editando = document.activeElement && document.activeElement.classList.contains('t');
+    if (sel && !db.parejas[sel]) { sel = null; renderVacio(); }
+    else if (sel) { if (!editando) renderPareja(); }
+    else renderVacio();
+  };
+  sync.iniciar(5000);
+
+  renderLista(); renderVacio(); alDorsal();
+})();
+
+/* ============================== PANTALLA PÚBLICA ============================== */
+if (vista === 'pantalla') (function () {
+  $('pub').hidden = false;
+  document.title = 'Pantalla pública · Dragon Rush 2026';
+  var page = 0, lastKey = '', PAGE_MS = 9000, remoto = null, fallos = 0;
+  // mezcla en memoria lo del servidor con lo de este navegador (si la captura está en esta misma compu)
+  function mezclar() {
+    if (!remoto) return;
+    if (remoto.epoch && db.epoch !== remoto.epoch) { db = { parejas: remoto.parejas, rev: db.rev, epoch: remoto.epoch }; return; }
+    Object.keys(remoto.parejas).forEach(function (k) { var p = remoto.parejas[k], o = db.parejas[k]; if (!o || (p.t || 0) > (o.t || 0)) db.parejas[k] = p; });
+  }
+  function bajarPantalla() {
+    var u = INSCRIPCIONES + '?action=resultados' + (remoto ? '&desde=' + remoto.rev + '&epoch=' + encodeURIComponent(remoto.epoch) : '');
+    fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (r) {
+      if (!r || !r.ok || r.rev == null) throw new Error('sin datos');
+      fallos = 0;
+      if (!r.sinCambios) { remoto = r; pintar(true); }
+    }).catch(function () { fallos++; });
+  }
+
+  function nombres(p) { return esc(p.n1) + (p.n2 ? ' <span style="color:#a9a9a3">y</span> ' + esc(p.n2) : ''); }
+  function pintar(force) {
+    db = load(); mezclar();
+    var cl = clasificacion(), n0 = new Date(), ahora = n0.getHours() * 3600 + n0.getMinutes() * 60 + n0.getSeconds();
+    var filas = cl.fin.map(function (x) {
+      return '<div class="row' + (x.pos <= 3 ? ' p' + x.pos : '') + '"><span class="pos">' + x.pos + '</span><span class="dor">' + x.p.d + '</span><span class="nm">' + nombres(x.p) + '</span><span class="tm">' + fmtDur(x.t) + '</span></div>';
+    }).concat(cl.carrera.map(function (p) {
+      var pr = progreso(p), sal = parseHora(p.salida), pips = '';
+      p.est.forEach(function (e) { pips += '<i' + (e.pen ? ' class="pen"' : (e.lleg || e.emp ? ' class="on"' : '')) + '></i>'; });
+      return '<div class="row run"><span class="pos" aria-label="En carrera">●</span><span class="dor">' + p.d + '</span><span class="nm"><span class="n1">' + nombres(p) + '</span><span class="prog">' + pips + '<em>' + esc(pr.label) + '</em></span></span><span class="tm">' + (sal != null && ahora >= sal ? fmtDur(ahora - sal) : '–') + '</span></div>';
+    })).concat(cl.out.map(function (p) {
+      return '<div class="row out"><span class="pos">–</span><span class="dor">' + p.d + '</span><span class="nm">' + nombres(p) + '</span><span class="tm">' + (p.estado === 'dnf' ? 'No terminó' : 'Descalificada') + '</span></div>';
+    }));
+    var box = $('rows'), H = box.clientHeight, vh = window.innerHeight / 100;
+    var per = Math.max(4, Math.min(10, Math.floor((H + 0.9 * vh) / (7.2 * vh + 0.9 * vh))));   // filas por página, legibles a distancia
+    var rh = (H - (per - 1) * 0.9 * vh) / per;
+    box.style.setProperty('--rh', rh + 'px');
+    var pages = Math.max(1, Math.ceil(filas.length / per));
+    if (page >= pages) page = 0;
+    var key = db.rev + '|' + (remoto ? remoto.rev : '') + '|' + (fallos >= 3) + '|' + page + '|' + per + '|' + cl.carrera.length + '|' + cl.salir.length + (cl.carrera.length ? '|' + ahora : '');   // con parejas en carrera, el reloj corre cada segundo
+    if (!force && key === lastKey) return;
+    lastKey = key;
+    box.innerHTML = filas.length ? filas.slice(page * per, page * per + per).join('')
+      : '<div class="board-empty"><b>La carrera está por empezar</b><span>Aquí aparece cada pareja apenas sale, con su tiempo corriendo en vivo.</span></div>';
+    $('page-info').textContent = (pages > 1 ? 'Página ' + (page + 1) + ' de ' + pages + ' · filas ' + (page * per + 1) + ' a ' + Math.min(filas.length, page * per + per) : (filas.length ? filas.length + (filas.length === 1 ? ' pareja' : ' parejas') + ' en la tabla' : '')) + (fallos >= 3 ? ' · sin conexión, mostrando lo último recibido' : '');
+    var dots = ''; for (var i = 0; i < pages && pages > 1; i++) dots += '<i' + (i === page ? ' class="on"' : '') + '></i>';
+    $('dots').innerHTML = dots;
+    $('s-meta').textContent = cl.fin.length; $('s-carrera').textContent = cl.carrera.length;
+    $('n-carrera').textContent = cl.carrera.length || ''; $('n-salir').textContent = cl.salir.length || '';
+    $('chips-carrera').innerHTML = cl.carrera.length ? cl.carrera.map(function (p) { return '<span class="dchip">' + p.d + '</span>'; }).join('') : '<span class="none" style="grid-column:1/-1">Nadie en el circuito ahora.</span>';
+    $('chips-salir').innerHTML = cl.salir.length ? cl.salir.map(function (p) { return '<span class="dchip wait">' + p.d + '</span>'; }).join('') : '<span class="none" style="grid-column:1/-1">Ya salieron todas.</span>';
+  }
+  function reloj() { var n = new Date(); $('clock').textContent = p2(n.getHours()) + ':' + p2(n.getMinutes()) + ':' + p2(n.getSeconds()); }
+
+  window.addEventListener('storage', function (e) { if (e.key === KEY) pintar(true); });   // cambio inmediato desde la captura
+  window.addEventListener('resize', function () { pintar(true); });
+  setInterval(function () { reloj(); pintar(false); }, 1000);                              // respaldo: se refresca sola cada segundo
+  setInterval(function () { page++; pintar(true); }, PAGE_MS);
+  setInterval(bajarPantalla, 4000); bajarPantalla();                                         // datos de la captura, desde cualquier dispositivo                             // rota páginas si no caben todas
+  reloj(); pintar(true);
+})();
+})();
+</script>
+</body>
+</html>

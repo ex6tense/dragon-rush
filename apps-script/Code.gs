@@ -115,12 +115,14 @@ function doGet_(e) {
     const v = validadas_();
     return json_({ ok: true, validadas: v, cupo: CONFIG.CUPO, quedan: Math.max(0, CONFIG.CUPO - v) });
   }
+  if (action === 'parejas') return json_(parejas_());
+  if (action === 'resultados') return json_(resLeer_(e.parameter));
   if (action === 'revisar') return revisar_(e.parameter);
   if (action === 'info') {
     const ss = ss_();
     return json_({ ok: true, hoja: ss.getName(), pestañas: ss.getSheets().map(s => s.getName()) });
   }
-  return json_({ ok: true, evento: CONFIG.EVENTO, version: 3 });
+  return json_({ ok: true, evento: CONFIG.EVENTO, version: 5 });
 }
 
 // ---------------------------------------------------------------------------
@@ -133,6 +135,7 @@ function doPost(e) {
     const d = JSON.parse(e.postData.contents);
     if (d.action === 'espera') return json_(guardarEspera_(d));
     if (d.action === 'inscripcion') return json_(guardarInscripcion_(d));
+    if (d.action === 'resultados') return json_(resGuardar_(d));
     return json_({ ok: false, error: 'acción desconocida' });
   } catch (err) {
     console.error(err);
@@ -355,6 +358,97 @@ function plantilla_(titulo, cuerpo) {
 // ---------------------------------------------------------------------------
 // Utilidades
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Resultados en vivo: la página /resultados guarda aquí lo que se captura y la pantalla pública lo lee.
+// GET  ?action=resultados[&desde=REV&epoch=E]  →  { ok, epoch, rev, parejas }  (o { sinCambios: true })
+// POST { action: 'resultados', clave, epoch, parejas, reset? }
+// La primera clave que llega queda como clave de captura (Configuración del proyecto → Propiedades del
+// script → CLAVE_RESULTADOS). Para cambiarla, borra esa propiedad y escribe la nueva en la página.
+// Los datos quedan en la pestaña "Resultados (datos)" (no la edites a mano).
+// ---------------------------------------------------------------------------
+const HOJA_RES = 'Resultados (datos)';
+
+function resCargar_() {
+  const cache = CacheService.getScriptCache();
+  const c = cache.get('resultados');
+  if (c) return JSON.parse(c);
+  const sh = ss_().getSheetByName(HOJA_RES);
+  let d = null;
+  if (sh && sh.getLastRow() > 0) {
+    // cada celda empieza con "#" para que Sheets no la tome como número o fórmula
+    const txt = sh.getRange(1, 1, sh.getLastRow(), 1).getValues().map(r => String(r[0]).slice(1)).join('');
+    try { d = JSON.parse(txt); } catch (e) { d = null; }
+  }
+  d = d || { epoch: '', rev: 0, parejas: {} };
+  try { cache.put('resultados', JSON.stringify(d), 21600); } catch (e) {}
+  return d;
+}
+
+function resGuardarHoja_(d) {
+  const ss = ss_();
+  const sh = ss.getSheetByName(HOJA_RES) || ss.insertSheet(HOJA_RES);
+  const txt = JSON.stringify(d), partes = [];
+  for (let i = 0; i < txt.length; i += 40000) partes.push(['#' + txt.slice(i, i + 40000)]);
+  sh.clearContents();
+  sh.getRange(1, 1, partes.length, 1).setValues(partes);
+  const cache = CacheService.getScriptCache();
+  try { cache.put('resultados', txt, 21600); } catch (e) { cache.remove('resultados'); }
+}
+
+function resLeer_(p) {
+  const d = resCargar_();
+  if (p.desde && p.epoch === d.epoch && String(p.desde) === String(d.rev)) return { ok: true, sinCambios: true, epoch: d.epoch, rev: d.rev };
+  return { ok: true, epoch: d.epoch, rev: d.rev, parejas: d.parejas };
+}
+
+function resGuardar_(b) {
+  const props = PropertiesService.getScriptProperties();
+  const k = String(b.clave || '').trim();
+  let clave = props.getProperty('CLAVE_RESULTADOS');
+  if (!clave) {
+    if (k.length < 4) return { ok: false, error: 'clave' };
+    props.setProperty('CLAVE_RESULTADOS', k);
+    clave = k;
+  }
+  if (k !== clave) return { ok: false, error: 'clave' };
+  let d = resCargar_(), cambio = false;
+  if (b.reset) { d = { epoch: String(b.epoch || Date.now()), rev: d.rev || 0, parejas: {} }; cambio = true; }
+  if (!d.epoch) { d.epoch = String(b.epoch || Date.now()); cambio = true; }
+  // si otra compu borró todo (epoch distinto), no se mezclan datos viejos: se devuelve lo actual
+  if (b.reset || !b.epoch || b.epoch === d.epoch) {
+    const inn = b.parejas && typeof b.parejas === 'object' ? b.parejas : {};
+    Object.keys(inn).forEach(key => {
+      const p = inn[key];
+      if (!/^\d{1,4}$/.test(key) || !p || typeof p !== 'object') return;
+      const o = d.parejas[key];
+      if (!o || (Number(p.t) || 0) > (Number(o.t) || 0)) { d.parejas[key] = p; cambio = true; }
+    });
+  }
+  if (cambio) { d.rev = (d.rev || 0) + 1; resGuardarHoja_(d); }
+  return { ok: true, epoch: d.epoch, rev: d.rev, parejas: d.parejas };
+}
+
+// Parejas con pago Validado para la página de resultados: solo nombres (y Dorsal / Ola / Hora de salida
+// si se agregaron esas columnas a la hoja). No expone correos, documentos ni teléfonos.
+function parejas_() {
+  const head = ['Estado del pago', 'Dorsal', 'Ola', 'Hora de salida', 'I1 · Nombre', 'I2 · Nombre'];
+  const sh = hoja_(HOJA);
+  const n = sh.getLastRow();
+  if (n < 2) return { ok: true, filas: [head], fuera: 0 };
+  const v = sh.getRange(1, 1, n, sh.getLastColumn()).getDisplayValues();
+  const h = v[0].map(x => String(x).trim().toLowerCase());
+  const idx = head.map(c => h.indexOf(c.toLowerCase()));
+  const filas = [head];
+  let fuera = 0;
+  v.slice(1).forEach(r => {
+    const f = idx.map(i => (i < 0 ? '' : String(r[i]).trim()));
+    if (!f[4] && !f[5]) return;
+    if (f[0] !== 'Validado') { fuera++; return; }
+    filas.push(f);
+  });
+  return { ok: true, filas: filas, fuera: fuera };
+}
+
 function validadas_() {
   const sh = hoja_(HOJA);
   const n = sh.getLastRow() - 1;
