@@ -124,6 +124,14 @@
   .hero-meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0;padding:0;list-style:none;font-family:var(--f-mono);font-size:14px;font-weight:700;letter-spacing:.04em}
   .hero-meta li{display:flex;align-items:center;gap:8px}
   .hero-meta svg{width:18px;height:18px;flex:none}
+  .offer{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 12px;margin:0;padding:8px 18px 8px 8px;background:var(--white);color:var(--black);border-radius:99px;box-shadow:0 10px 30px rgba(0,0,0,.18);max-width:100%;width:fit-content;align-self:flex-start}
+  @media (max-width:520px){.offer{border-radius:20px;padding:10px 14px 10px 10px}}
+  .offer-tag{background:var(--black);color:var(--white);font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;border-radius:99px}
+  .offer-price{font-family:var(--f-display);font-size:34px;line-height:1;color:var(--red)}
+  .offer-price s{color:var(--gray-mid);font-size:22px;margin-right:4px;text-decoration-thickness:3px}
+  .offer-sub{font-family:var(--f-mono);font-size:13px;font-weight:700;letter-spacing:.04em}
+  .info .was{color:var(--gray-mid);font-size:.7em;margin-right:6px;text-decoration-thickness:2px}
+  .info .deal{display:inline-block;vertical-align:middle;margin-left:8px;background:var(--red);color:var(--white);font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:99px}
   .hero-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
   .hero-actions .btn--ghost{display:none}
 
@@ -181,6 +189,8 @@
   .info.price .ic{background:var(--white);color:var(--red)}
   .info.price h3{color:rgba(255,255,255,.85)}
   .info.price p{font-family:var(--f-display);font-weight:400;font-size:46px;line-height:1}
+  .info.price .was{color:rgba(255,255,255,.6)}
+  .info.price .deal{background:var(--white);color:var(--red)}
   .info.price p small{font-family:var(--f-body);color:rgba(255,255,255,.9);font-size:14px;font-weight:600;line-height:1.4}
   .tag{display:inline-block;font-family:var(--f-mono);font-size:10px;font-weight:700;letter-spacing:.12em;padding:3px 8px;border-radius:99px;background:var(--black);color:var(--white);vertical-align:middle;margin-left:6px}
 
@@ -505,6 +515,7 @@
         <li><svg aria-hidden="true"><use href="#i-cal"/></svg>Sábado 28 de noviembre de 2026</li>
         <li><svg aria-hidden="true"><use href="#i-pin"/></svg>Campus USFQ, Cumbayá</li>
       </ul>
+      <p class="offer reveal"><span class="offer-tag">Oferta</span><span class="offer-price"><s>$25</s> $18</span><span class="offer-sub">por pareja · hasta el 24 de noviembre</span></p>
       <div class="hero-actions reveal">
         <a class="btn btn--lg" href="inscripcion/">Inscribir mi pareja <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
         <a class="btn btn--ghost btn--lg" href="#que-es">Cómo funciona</a>
@@ -563,7 +574,7 @@
     <div class="info-grid">
       <article class="info price reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-ticket"/></svg></span>
-        <div><h3>Inscripción</h3><p>$25<small>por pareja · precio único</small></p></div>
+        <div><h3>Inscripción <span class="deal">Oferta</span></h3><p><s class="was">$25</s>$18<small>por pareja · precio de oferta hasta el cierre</small></p></div>
       </article>
       <article class="info reveal">
         <span class="ic" aria-hidden="true"><svg><use href="#i-cal"/></svg></span>
@@ -718,7 +729,7 @@
       <article class="date hot reveal">
         <div class="d">24<small>Nov</small></div>
         <h3>Cierre de inscripciones</h3>
-        <p>Último día para inscribir a tu pareja. $25 por pareja.</p>
+        <p>Último día para inscribir a tu pareja con la oferta: $18 por pareja (antes $25).</p>
       </article>
       <article class="date reveal">
         <div class="d">25<small>Nov</small></div>
@@ -815,7 +826,7 @@
   <div class="ghost-word" aria-hidden="true">2026</div>
   <div class="wrap reveal">
     <h2 class="display" id="t-final">Arma tu pareja.<br><span class="script">y a correr.</span></h2>
-    <p class="lead">Sábado 28 de noviembre de 2026 · Campus USFQ, Cumbayá. $25 por pareja.</p>
+    <p class="lead">Sábado 28 de noviembre de 2026 · Campus USFQ, Cumbayá. <b>Oferta: $18 por pareja</b> (antes $25).</p>
     <a class="btn btn--black btn--lg" href="inscripcion/">Inscribir mi pareja <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
   </div>
 </section>

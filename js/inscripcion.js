@@ -259,7 +259,7 @@
       equipo: val('equipo'),
       integrantes: [await member(1), await member(2)],
       aceptaciones: { aptitud: true, reglamento: true, imagen: true, datos: true },
-      pago: { monto: 25, transaccion: val('transaccion'), comprobante: await toB64($('#comprobante').files[0]) },
+      pago: { monto: 18, transaccion: val('transaccion'), comprobante: await toB64($('#comprobante').files[0]) },
       enteraste: $('#enteraste').value,
       enviado: new Date().toISOString(),
     };

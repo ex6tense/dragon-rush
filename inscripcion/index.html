@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inscripción · Dragon Rush 2026</title>
-<meta name="description" content="Inscribe a tu pareja en Dragon Rush 2026: sábado 28 de noviembre, campus USFQ, Cumbayá. $25 por pareja.">
+<meta name="description" content="Inscribe a tu pareja en Dragon Rush 2026: sábado 28 de noviembre, campus USFQ, Cumbayá. $18 por pareja (oferta, antes $25).">
 <meta name="theme-color" content="#ED1C24">
 <link rel="icon" type="image/png" href="../img/favicon.png">
 <link rel="apple-touch-icon" href="../img/favicon.png">
@@ -62,6 +62,8 @@
   .facts li{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:99px;background:rgba(0,0,0,.25);font-family:var(--f-mono);font-size:13px;font-weight:700;letter-spacing:.04em}
   .facts svg{width:16px;height:16px}
   .facts .price{background:var(--white);color:var(--red)}
+  .facts .price s{opacity:.55;margin:0 2px}
+  .bank .amount b s{font-size:.5em;opacity:.55;margin-right:6px}
 
   /* tarjeta del formulario */
   .card{position:relative;margin-top:-64px;background:var(--white);border-radius:24px;box-shadow:0 30px 60px -36px rgba(0,0,0,.35);padding:24px 18px 28px}
@@ -186,7 +188,7 @@
       <p class="eyebrow">Inscripción por pareja</p>
       <h1 class="display" id="titulo">Inscribe a<br>tu pareja <span class="script">¡a correr!</span></h1>
       <ul class="facts">
-        <li class="price">$25 por pareja</li>
+        <li class="price">Oferta · <s>$25</s> $18 por pareja</li>
         <li><svg aria-hidden="true"><use href="#i-cal"/></svg>Sáb 28 nov 2026</li>
         <li><svg aria-hidden="true"><use href="#i-clock"/></svg>Registro 07:30 · salida 08:30</li>
         <li><svg aria-hidden="true"><use href="#i-pin"/></svg>Campus USFQ, Cumbayá</li>
@@ -237,7 +239,7 @@
         <fieldset class="step" data-step="5" data-title="Pago" hidden>
           <div class="grid">
             <div class="bank" aria-label="Datos para la transferencia">
-              <div class="amount"><span>Monto por pareja</span><b>USD 25,00</b></div>
+              <div class="amount"><span>Monto por pareja · oferta</span><b><s>25,00</s> USD 18,00</b></div>
               <dl id="bank-data"></dl>
               <button type="button" class="btn btn--sm copy" id="copy-account"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copiar número de cuenta</span></button>
             </div>
@@ -403,6 +405,6 @@
   </fieldset>
 </template>
 
-<script src="../js/inscripcion.js?v=3" defer></script>
+<script src="../js/inscripcion.js?v=4" defer></script>
 </body>
 </html>

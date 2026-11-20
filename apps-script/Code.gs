@@ -327,7 +327,7 @@ function correoAdmin_(d, numero, comprobante, token) {
       <tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Transacción</td><td><b>${esc_(d.pago.transaccion)}</b></td></tr>
       <tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Comprobante</td><td><a href="${comprobante}">Abrir en Drive</a></td></tr>
     </table>
-    <p style="margin-top:16px">Revisa que la transferencia de <b>USD 25,00</b> haya llegado y elige:</p>
+    <p style="margin-top:16px">Revisa que la transferencia de <b>USD 18,00</b> haya llegado y elige:</p>
     ${boton(link('validar'), '✅ Validar pago', '#1f8a4c')}${boton(link('rechazar'), '❌ Rechazar pago', '#101010')}
     <p style="font-size:13px;color:#6b6b6b;margin-top:14px">Cada botón abre una página para confirmar. También puedes cambiar el "Estado del pago" directamente en la hoja.</p>`);
   MailApp.sendEmail({ to: CONFIG.ADMIN, subject: `${CONFIG.EVENTO} · Revisar pago · Pareja ${numero} · ${d.equipo}`, htmlBody: html, name: CONFIG.REMITENTE });
